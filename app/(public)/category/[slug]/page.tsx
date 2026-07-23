@@ -32,7 +32,7 @@ export default async function CategoryPage({ params }: PageProps) {
           </Link>
           <div className="mt-10 grid gap-5 md:grid-cols-[1fr_.65fr] md:items-end">
             <div>
-              <p className="eyebrow text-terracotta">KitchenWareHelp library</p>
+              <p className="eyebrow text-terracotta">KitchenMadeHealth library</p>
               <h1 className="mt-3 font-display text-5xl font-semibold tracking-[-.05em] md:text-7xl">
                 {category.name}
               </h1>

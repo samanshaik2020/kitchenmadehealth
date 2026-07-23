@@ -8,17 +8,17 @@ export function Newsletter() {
 
   return (
     <section className="container-wide py-16 md:py-24">
-      <div className="relative overflow-hidden rounded-[2rem] bg-terracotta px-6 py-12 text-white md:px-14 md:py-16">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-sage-dark px-6 py-12 text-white shadow-[0_24px_80px_rgba(23,59,46,.18)] md:px-14 md:py-16">
         <div className="absolute -right-16 -top-24 size-72 rounded-full border-[44px] border-white/8" />
         <div className="relative grid gap-8 md:grid-cols-[1fr_.9fr] md:items-end">
           <div>
-            <p className="eyebrow text-white/65">Notes from the kitchen</p>
+            <p className="eyebrow text-white/65">The Sunday reset</p>
             <h2 className="mt-4 max-w-xl font-display text-4xl font-semibold leading-[1.05] tracking-[-.04em] md:text-5xl">
-              Better tools. Fewer regrets.
+              A healthier kitchen, one useful note at a time.
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-7 text-white/75">
-              One thoughtful guide every other Sunday. No clutter, no sponsored
-              hype—just useful advice.
+              Seasonal ideas, practical guides, and small changes that make
+              everyday cooking feel better.
             </p>
           </div>
           {done ? (
@@ -42,7 +42,7 @@ export function Newsletter() {
                 className="min-w-0 flex-1 bg-transparent px-4 text-sm text-ink outline-none placeholder:text-stone"
               />
               <button
-                className="grid size-11 shrink-0 place-items-center rounded-full bg-ink text-white transition hover:scale-105"
+                className="grid size-11 shrink-0 place-items-center rounded-full bg-terracotta text-white transition hover:scale-105"
                 aria-label="Subscribe"
               >
                 <ArrowRight size={18} />

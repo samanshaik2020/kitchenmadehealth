@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { ChefHat } from "lucide-react";
+import { HeartPulse } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Logo({
   compact = false,
   inverse = false,
+  small = false,
 }: {
   compact?: boolean;
   inverse?: boolean;
+  small?: boolean;
 }) {
   return (
     <Link
@@ -16,14 +18,19 @@ export function Logo({
         "group inline-flex items-center gap-2.5",
         inverse ? "text-white" : "text-ink",
       )}
-      aria-label="KitchenWareHelp home"
+      aria-label="KitchenMadeHealth home"
     >
-      <span className="grid size-9 place-items-center rounded-full bg-terracotta text-white transition-transform group-hover:-rotate-6">
-        <ChefHat size={19} strokeWidth={1.8} />
+      <span className="grid size-9 place-items-center rounded-full bg-sage-dark text-white shadow-[0_8px_20px_rgba(49,92,71,.18)] transition-transform group-hover:scale-105">
+        <HeartPulse size={18} strokeWidth={1.8} />
       </span>
       {!compact && (
-        <span className="font-display text-xl font-semibold tracking-[-.025em]">
-          KitchenWare<span className="text-terracotta">Help</span>
+        <span
+          className={cn(
+            "font-display font-semibold tracking-[-.025em]",
+            small ? "text-base" : "text-xl",
+          )}
+        >
+          Kitchen Made <span className="text-terracotta">Health</span>
         </span>
       )}
     </Link>

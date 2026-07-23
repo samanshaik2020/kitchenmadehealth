@@ -1,4 +1,4 @@
--- KitchenWareHelp initial schema
+-- KitchenMadeHealth initial schema
 -- Run this file in the Supabase SQL Editor.
 
 create extension if not exists "pgcrypto";

@@ -14,7 +14,7 @@ export function CategoryChip({
     <Link
       href={`/category/${slug}`}
       className={cn(
-        "inline-flex rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.11em] text-terracotta shadow-sm backdrop-blur-sm transition hover:bg-white",
+        "inline-flex rounded-full border border-white/60 bg-paper/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.13em] text-sage-dark shadow-sm backdrop-blur-md transition hover:bg-white",
         className,
       )}
     >

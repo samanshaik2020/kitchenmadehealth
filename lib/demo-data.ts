@@ -55,7 +55,7 @@ export const demoPosts: Post[] = [
     `,
     cover_image_url:
       "https://images.unsplash.com/photo-1584990347449-a750607b346d?auto=format&fit=crop&w=1600&q=85",
-    seo_title: "How to Choose a Pan That Lasts | KitchenWareHelp",
+    seo_title: "How to Choose a Pan That Lasts | KitchenMadeHealth",
     seo_description:
       "Learn how to choose durable cookware based on your cooking style, materials, construction, and a practical three-pan foundation.",
     published_at: "2026-07-18T09:00:00.000Z",

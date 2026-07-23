@@ -26,11 +26,11 @@ export default function LoginPage() {
             Welcome back to the kitchen.
           </h1>
           <p className="mt-4 text-sm leading-7 text-stone">
-            Sign in to write, review, and publish KitchenWareHelp guides.
+            Sign in to write, review, and publish KitchenMadeHealth guides.
           </p>
           <LoginForm demoMode={!configured} />
         </div>
-        <p className="text-xs text-stone">KitchenWareHelp editorial workspace</p>
+        <p className="text-xs text-stone">KitchenMadeHealth editorial workspace</p>
       </section>
       <section className="relative hidden overflow-hidden bg-clay lg:block">
         <Image

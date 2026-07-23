@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Clock3, Share2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CategoryChip } from "@/components/blog/category-chip";
 import { PostCard } from "@/components/blog/post-card";
+import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { demoPosts } from "@/lib/demo-data";
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts";
 import { formatDate, readingTime } from "@/lib/utils";
@@ -61,7 +61,7 @@ export default async function PostPage({ params }: PageProps) {
             {post.excerpt}
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-stone">
-            <span>By the KitchenWareHelp editors</span>
+            <span>By the KitchenMadeHealth editors</span>
             <span className="size-1 rounded-full bg-line" />
             <span>{formatDate(post.published_at)}</span>
             <span className="size-1 rounded-full bg-line" />
@@ -73,7 +73,7 @@ export default async function PostPage({ params }: PageProps) {
       {post.cover_image_url && (
         <div className="container-wide">
           <div className="relative aspect-[16/8.5] overflow-hidden rounded-[1.75rem] bg-clay">
-            <Image src={post.cover_image_url} alt="" fill priority sizes="100vw" className="object-cover" />
+            <UserCoverImage src={post.cover_image_url} alt="" priority />
           </div>
         </div>
       )}

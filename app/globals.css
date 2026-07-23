@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-paper: #fbf8f2;
-  --color-cream: #f4eee4;
-  --color-clay: #eee1d3;
-  --color-line: #ded5ca;
-  --color-ink: #292620;
-  --color-stone: #716b62;
-  --color-brown: #735444;
-  --color-terracotta: #b65d3f;
-  --color-terracotta-dark: #98472f;
-  --color-sage: #829174;
-  --color-sage-dark: #526148;
+  --color-paper: #fbfcf8;
+  --color-cream: #f0f5eb;
+  --color-clay: #e2ecdc;
+  --color-line: #d4dfcf;
+  --color-ink: #173b2e;
+  --color-stone: #63766d;
+  --color-brown: #476557;
+  --color-terracotta: #e26f51;
+  --color-terracotta-dark: #c45338;
+  --color-sage: #8eaa7e;
+  --color-sage-dark: #315c47;
   --font-display: Georgia, "Times New Roman", serif;
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
 * {
@@ -28,13 +28,13 @@ body {
   margin: 0;
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: #d7ab96;
-  color: #292620;
+  background: #c9ddbe;
+  color: #173b2e;
 }
 
 a,
@@ -67,12 +67,12 @@ select {
 }
 
 .dot-grid {
-  background-image: radial-gradient(rgba(111, 88, 70, 0.16) 0.7px, transparent 0.7px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(rgba(49, 92, 71, 0.16) 0.75px, transparent 0.75px);
+  background-size: 16px 16px;
 }
 
 .article-content {
-  color: #49443d;
+  color: #41584d;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.13rem;
   line-height: 1.9;

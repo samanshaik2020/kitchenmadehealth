@@ -5,13 +5,30 @@ import type { Category, Post } from "@/lib/types";
 
 const POST_SELECT = "*, category:categories(*)";
 
+function getDemoPublishedPosts(options?: {
+  category?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const page = Math.max(1, options?.page ?? 1);
+  const pageSize = options?.pageSize ?? 9;
+  const filtered = options?.category
+    ? demoPosts.filter((post) => post.category?.slug === options.category)
+    : demoPosts;
+  const start = (page - 1) * pageSize;
+
+  return {
+    posts: filtered.slice(start, start + pageSize),
+    count: filtered.length,
+  };
+}
+
 export async function getCategories(): Promise<Category[]> {
   if (!isSupabaseConfigured()) return demoCategories;
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("categories").select("*").order("name");
   if (error) {
-    console.error("Unable to load categories:", error.message);
     return demoCategories;
   }
   return data as Category[];
@@ -26,21 +43,18 @@ export async function getPublishedPosts(options?: {
   const pageSize = options?.pageSize ?? 9;
 
   if (!isSupabaseConfigured()) {
-    const filtered = options?.category
-      ? demoPosts.filter((post) => post.category?.slug === options.category)
-      : demoPosts;
-    const start = (page - 1) * pageSize;
-    return { posts: filtered.slice(start, start + pageSize), count: filtered.length };
+    return getDemoPublishedPosts(options);
   }
 
   const supabase = await createClient();
   let categoryId: string | undefined;
   if (options?.category) {
-    const { data: category } = await supabase
+    const { data: category, error: categoryError } = await supabase
       .from("categories")
       .select("id")
       .eq("slug", options.category)
       .maybeSingle();
+    if (categoryError) return getDemoPublishedPosts(options);
     if (!category) return { posts: [], count: 0 };
     categoryId = category.id;
   }
@@ -58,8 +72,7 @@ export async function getPublishedPosts(options?: {
 
   const { data, error, count } = await query;
   if (error) {
-    console.error("Unable to load posts:", error.message);
-    return { posts: demoPosts.slice(0, pageSize), count: demoPosts.length };
+    return getDemoPublishedPosts(options);
   }
   return { posts: (data ?? []) as unknown as Post[], count: count ?? 0 };
 }
@@ -78,8 +91,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     .maybeSingle();
 
   if (error) {
-    console.error("Unable to load post:", error.message);
-    return null;
+    return demoPosts.find((post) => post.slug === slug) ?? null;
   }
   return data as unknown as Post | null;
 }
@@ -110,7 +122,7 @@ export async function getDashboardPosts(): Promise<Post[]> {
     .from("posts")
     .select(POST_SELECT)
     .order("updated_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return getDemoPublishedPosts({ pageSize: 1000 }).posts;
   return (data ?? []) as unknown as Post[];
 }
 
@@ -135,6 +147,6 @@ export async function getDashboardPost(id: string): Promise<Post | null> {
     .select(POST_SELECT)
     .eq("id", id)
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) return demoPosts.find((post) => post.id === id) ?? null;
   return data as unknown as Post | null;
 }

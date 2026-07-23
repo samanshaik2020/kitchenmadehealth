@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
@@ -16,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { createClient } from "@/lib/supabase/client";
 import type { ActionState, Category, Post } from "@/lib/types";
 import { slugify } from "@/lib/utils";
@@ -178,7 +178,7 @@ export function PostForm({
               <span className="rounded-full bg-cream px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-stone">SEO</span>
             </div>
             <div className="mt-6 rounded-xl border border-line bg-[#fafafa] p-4">
-              <p className="text-xs text-[#1f6d3b]">kitchenwarehelp.com › blog › {slug || "post-slug"}</p>
+              <p className="text-xs text-[#1f6d3b]">kitchenmadehealth.com › blog › {slug || "post-slug"}</p>
               <p className="mt-1 text-lg text-[#1a0dab]">{title || "Your post title"}</p>
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-stone">Your SEO description will appear here when you add it below.</p>
             </div>
@@ -234,7 +234,7 @@ export function PostForm({
             <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-xl border border-dashed border-line bg-cream">
               {coverUrl ? (
                 <>
-                  <Image src={coverUrl} alt="Cover preview" fill className="object-cover" sizes="320px" />
+                  <UserCoverImage src={coverUrl} alt="Cover preview" />
                   <button type="button" onClick={() => setCoverUrl("")} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-ink/80 text-white" aria-label="Remove cover">
                     <X size={14} />
                   </button>

@@ -6,9 +6,9 @@ import { getCategories, getPublishedPosts } from "@/lib/posts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Kitchen Guides & Reviews",
+  title: "Healthy Kitchen Guides & Reviews",
   description:
-    "Browse honest kitchenware reviews, practical buying guides, and useful care advice.",
+    "Browse practical guides for healthier cooking, thoughtful kitchen tools, and simpler everyday routines.",
 };
 
 export default async function BlogPage({
@@ -37,13 +37,13 @@ export default async function BlogPage({
     <>
       <section className="border-b border-line bg-cream">
         <div className="container-wide py-16 text-center md:py-24">
-          <p className="eyebrow text-terracotta">The kitchen library</p>
+          <p className="eyebrow text-terracotta">The healthy kitchen library</p>
           <h1 className="mx-auto mt-4 max-w-3xl font-display text-5xl font-semibold tracking-[-.05em] md:text-7xl">
-            Guides for a better working kitchen
+            Guides for a kitchen that helps you thrive
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-stone">
-            Clear answers, honest reviews, and thoughtful advice for every tool
-            in your kitchen.
+            Clear answers, honest reviews, and thoughtful ideas for cooking,
+            choosing, and living a little better every day.
           </p>
         </div>
       </section>

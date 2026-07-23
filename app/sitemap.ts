@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenwarehelp.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
   const [{ posts }, categories] = await Promise.all([
     getPublishedPosts({ pageSize: 1000 }),
     getCategories(),

@@ -3,20 +3,20 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenwarehelp.com",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com",
   ),
   title: {
-    default: "KitchenWareHelp — Buy thoughtfully. Cook beautifully.",
-    template: "%s | KitchenWareHelp",
+    default: "KitchenMadeHealth — Cook well. Live well.",
+    template: "%s | KitchenMadeHealth",
   },
   description:
-    "Thoughtful kitchenware guides, honest reviews, and practical advice for a better working kitchen.",
+    "Thoughtful guides for healthier cooking, smarter kitchen tools, and everyday habits that feel good enough to keep.",
   openGraph: {
     type: "website",
-    siteName: "KitchenWareHelp",
-    title: "KitchenWareHelp",
+    siteName: "KitchenMadeHealth",
+    title: "KitchenMadeHealth",
     description:
-      "Thoughtful kitchenware guides, honest reviews, and practical advice.",
+      "Healthier cooking, smarter tools, and practical kitchen habits for real life.",
   },
 };
 

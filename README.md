@@ -1,7 +1,7 @@
-# KitchenWareHelp
+# KitchenMadeHealth
 
 A production-ready editorial blog and private publishing dashboard for
-`kitchenwarehelp.com`, built with Next.js 16.2.11, TypeScript, Tailwind CSS,
+`kitchenmadehealth.com`, built with Next.js 16.2.11, TypeScript, Tailwind CSS,
 Supabase, and Tiptap.
 
 ## What is included
@@ -50,5 +50,5 @@ npm run build
 ## Deployment
 
 Import the repository into Vercel, add the environment variables, and set
-`NEXT_PUBLIC_SITE_URL` to the production origin. Attach `kitchenwarehelp.com`
-and `www.kitchenwarehelp.com` in the Vercel domain settings.
+`NEXT_PUBLIC_SITE_URL` to the production origin. Attach `kitchenmadehealth.com`
+and `www.kitchenmadehealth.com` in the Vercel domain settings.

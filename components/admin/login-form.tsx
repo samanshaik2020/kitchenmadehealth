@@ -16,7 +16,7 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
     <form action={formAction} className="mt-8 space-y-5">
       <div>
         <Label htmlFor="email">Email address</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" placeholder="editor@kitchenwarehelp.com" required={!demoMode} />
+        <Input id="email" name="email" type="email" autoComplete="email" placeholder="editor@kitchenmadehealth.com" required={!demoMode} />
       </div>
       <div>
         <div className="flex items-center justify-between">

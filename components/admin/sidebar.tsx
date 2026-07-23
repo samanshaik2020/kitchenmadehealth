@@ -8,7 +8,7 @@ export function AdminSidebar() {
     <aside className="border-b border-line bg-ink text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:border-b-0 lg:border-r lg:border-white/10">
       <div className="flex h-full flex-col p-4 lg:p-5">
         <div>
-          <Logo inverse />
+          <Logo inverse small />
         </div>
         <nav className="mt-4 flex gap-1 overflow-x-auto lg:mt-10 lg:block lg:space-y-1" aria-label="Editor navigation">
           <Link href="/dashboard" className="flex shrink-0 items-center gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-semibold text-white">

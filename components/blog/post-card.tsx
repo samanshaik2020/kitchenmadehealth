@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Clock3 } from "lucide-react";
 import { CategoryChip } from "@/components/blog/category-chip";
+import { UserCoverImage } from "@/components/ui/user-cover-image";
 import type { Post } from "@/lib/types";
 import { cn, formatDate, readingTime } from "@/lib/utils";
 
@@ -15,36 +15,38 @@ export function PostCard({
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-[0_12px_40px_rgba(56,43,35,.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(56,43,35,.1)]",
-        featured && "grid min-h-[29rem] md:grid-cols-[1.2fr_.8fr]",
+        "group overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_14px_45px_rgba(23,59,46,.06)] transition duration-300 hover:-translate-y-1.5 hover:border-sage/60 hover:shadow-[0_24px_60px_rgba(23,59,46,.12)]",
+        featured && "grid min-h-[31rem] md:grid-cols-[1.15fr_.85fr]",
       )}
     >
-      <Link
-        href={`/blog/${post.slug}`}
+      <div
         className={cn(
-          "relative block aspect-[4/3] overflow-hidden bg-clay",
+          "relative aspect-[4/3] overflow-hidden bg-clay",
           featured && "md:aspect-auto",
         )}
-        aria-label={`Read ${post.title}`}
       >
-        {post.cover_image_url && (
-          <Image
-            src={post.cover_image_url}
-            alt=""
-            fill
-            className="object-cover transition duration-700 group-hover:scale-[1.035]"
-            sizes={featured ? "(max-width: 768px) 100vw, 60vw" : "(max-width: 768px) 100vw, 33vw"}
-          />
-        )}
+        <Link
+          href={`/blog/${post.slug}`}
+          className="absolute inset-0"
+          aria-label={`Read ${post.title}`}
+        >
+          {post.cover_image_url && (
+            <UserCoverImage
+              src={post.cover_image_url}
+              alt=""
+              className="object-cover transition duration-700 group-hover:scale-[1.035]"
+            />
+          )}
+        </Link>
         {post.category && (
           <CategoryChip
             name={post.category.name}
             slug={post.category.slug}
-            className="absolute left-5 top-5"
+            className="absolute left-5 top-5 z-10"
           />
         )}
-      </Link>
-      <div className={cn("flex flex-col p-6", featured && "justify-center p-7 md:p-10")}>
+      </div>
+      <div className={cn("flex flex-col p-6 md:p-7", featured && "justify-center p-7 md:p-11")}>
         <div className="mb-4 flex items-center gap-3 text-xs font-medium text-stone">
           <span>{formatDate(post.published_at, "short")}</span>
           <span className="size-1 rounded-full bg-line" />
@@ -67,7 +69,7 @@ export function PostCard({
         </p>
         <Link
           href={`/blog/${post.slug}`}
-          className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-terracotta"
+          className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-sage-dark"
         >
           Read the guide
           <ArrowUpRight

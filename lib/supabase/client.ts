@@ -1,14 +1,14 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseConfig } from "@/lib/supabase/env";
 
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const config = getSupabaseConfig();
 
-  if (!url || !key) {
+  if (!config) {
     throw new Error("Supabase environment variables are not configured.");
   }
 
-  return createBrowserClient(url, key);
+  return createBrowserClient(config.url, config.key);
 }

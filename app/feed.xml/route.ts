@@ -1,7 +1,7 @@
 import { getPublishedPosts } from "@/lib/posts";
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenwarehelp.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
   const { posts } = await getPublishedPosts({ pageSize: 50 });
 
   const escapeXml = (value: string) =>
@@ -28,7 +28,7 @@ export async function GET() {
     `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-  <title>KitchenWareHelp</title>
+  <title>KitchenMadeHealth</title>
   <link>${baseUrl}</link>
   <description>Thoughtful kitchenware guides, honest reviews, and practical advice.</description>
   ${items}
