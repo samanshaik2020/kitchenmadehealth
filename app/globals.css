@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-paper: #fbf8f2;
+  --color-cream: #f4eee4;
+  --color-clay: #eee1d3;
+  --color-line: #ded5ca;
+  --color-ink: #292620;
+  --color-stone: #716b62;
+  --color-brown: #735444;
+  --color-terracotta: #b65d3f;
+  --color-terracotta-dark: #98472f;
+  --color-sage: #829174;
+  --color-sage-dark: #526148;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #d7ab96;
+  color: #292620;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.container-wide {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.container-reading {
+  width: min(760px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(111, 88, 70, 0.16) 0.7px, transparent 0.7px);
+  background-size: 14px 14px;
+}
+
+.article-content {
+  color: #49443d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.13rem;
+  line-height: 1.9;
+}
+
+.article-content > * + * {
+  margin-top: 1.5rem;
+}
+
+.article-content h2,
+.article-content h3 {
+  color: var(--color-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.article-content h2 {
+  margin-top: 3.2rem;
+  font-size: clamp(1.8rem, 4vw, 2.35rem);
+}
+
+.article-content h3 {
+  margin-top: 2.4rem;
+  font-size: 1.45rem;
+}
+
+.article-content blockquote {
+  margin-block: 2.5rem;
+  border-left: 3px solid var(--color-terracotta);
+  padding: 0.5rem 0 0.5rem 1.6rem;
+  color: var(--color-brown);
+  font-size: 1.45rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.article-content ul,
+.article-content ol {
+  padding-left: 1.4rem;
+}
+
+.article-content li {
+  margin-top: 0.55rem;
+}
+
+.article-content ul li {
+  list-style: disc;
+}
+
+.article-content a {
+  color: var(--color-terracotta);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .container-wide,
+  .container-reading {
+    width: min(100% - 1.25rem, 1180px);
+  }
+
+  .article-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+  }
+}
