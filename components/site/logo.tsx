@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeartPulse } from "lucide-react";
+import { Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Logo({
@@ -20,17 +20,24 @@ export function Logo({
       )}
       aria-label="KitchenMadeHealth home"
     >
-      <span className="grid size-9 place-items-center rounded-full bg-sage-dark text-white shadow-[0_8px_20px_rgba(49,92,71,.18)] transition-transform group-hover:scale-105">
-        <HeartPulse size={18} strokeWidth={1.8} />
+      <span
+        className={cn(
+          "grid size-10 place-items-center rounded-full border transition-transform group-hover:rotate-[-8deg] group-hover:scale-105",
+          inverse
+            ? "border-white/25 bg-white/10 text-cream"
+            : "border-ink/15 bg-ink text-cream",
+        )}
+      >
+        <Leaf size={17} strokeWidth={1.6} />
       </span>
       {!compact && (
         <span
           className={cn(
-            "font-display font-semibold tracking-[-.025em]",
-            small ? "text-base" : "text-xl",
+            "font-display font-medium tracking-[-.035em]",
+            small ? "text-base" : "text-[1.35rem]",
           )}
         >
-          Kitchen Made <span className="text-terracotta">Health</span>
+          Kitchen Made <span className={inverse ? "text-sage" : "text-terracotta"}>Health</span>
         </span>
       )}
     </Link>

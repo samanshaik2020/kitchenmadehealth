@@ -105,7 +105,9 @@ export function PostEditor({
           className="grid size-8 place-items-center rounded-lg text-stone hover:bg-white hover:text-ink"
           onClick={() => {
             const url = window.prompt("Paste an image URL");
-            if (url) editor.chain().focus().setImage({ src: url }).run();
+            if (!url) return;
+            const alt = window.prompt("Describe this image for readers who cannot see it");
+            editor.chain().focus().setImage({ src: url, alt: alt?.trim() || "" }).run();
           }}
         >
           <ImageIcon size={15} />

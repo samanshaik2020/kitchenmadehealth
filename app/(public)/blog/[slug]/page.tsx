@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Clock3, Share2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Leaf, ShoppingBag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CategoryChip } from "@/components/blog/category-chip";
 import { PostCard } from "@/components/blog/post-card";
+import { ShareButton } from "@/components/blog/share-button";
+import { PostViewTracker } from "@/components/blog/post-view-tracker";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { demoPosts } from "@/lib/demo-data";
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts";
@@ -46,69 +48,139 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <article>
-      <header className="container-wide py-10 md:py-16">
-        <Link href="/blog" className="inline-flex items-center gap-2 text-xs font-bold text-stone hover:text-ink">
-          <ArrowLeft size={14} /> Back to all guides
-        </Link>
-        <div className="mx-auto mt-10 max-w-4xl text-center">
-          {post.category && (
-            <CategoryChip name={post.category.name} slug={post.category.slug} className="bg-clay" />
-          )}
-          <h1 className="mt-6 font-display text-[2.75rem] font-semibold leading-[1.02] tracking-[-.055em] md:text-[4.8rem]">
-            {post.title}
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-stone md:text-lg">
-            {post.excerpt}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-stone">
-            <span>By the KitchenMadeHealth editors</span>
-            <span className="size-1 rounded-full bg-line" />
-            <span>{formatDate(post.published_at)}</span>
-            <span className="size-1 rounded-full bg-line" />
-            <span className="flex items-center gap-1.5"><Clock3 size={14} /> {readingTime(post.content)} min read</span>
+      <PostViewTracker postId={post.id} />
+      <header className="relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-[#0b241a] text-white">
+        {post.cover_image_url && (
+          <UserCoverImage
+            src={post.cover_image_url}
+            alt={post.cover_image_alt ?? ""}
+            priority
+            className="object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,22,15,.3)_0%,rgba(6,22,15,.25)_30%,rgba(6,22,15,.94)_100%)]" />
+        <div className="container-wide relative z-10 flex min-h-[calc(100svh-4.75rem)] flex-col justify-between py-9 md:py-12">
+          <Link
+            href="/blog"
+            className="inline-flex w-fit items-center gap-2 text-[10px] font-bold uppercase tracking-[.15em] text-white/65 transition hover:text-white"
+          >
+            <ArrowLeft size={13} /> Back to the journal
+          </Link>
+
+          <div className="max-w-5xl pb-5">
+            {post.category && (
+              <CategoryChip name={post.category.name} slug={post.category.slug} />
+            )}
+            <h1 className="text-balance mt-6 font-display text-[3.4rem] font-medium leading-[.94] tracking-[-.06em] sm:text-6xl md:text-[5.8rem]">
+              {post.title}
+            </h1>
+            <p className="mt-6 max-w-2xl text-sm leading-7 text-white/68 md:text-base md:leading-8">
+              {post.excerpt}
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-[9px] font-bold uppercase tracking-[.15em] text-white/55">
+              <span>By Kitchen Made Health</span>
+              <span className="h-px w-7 bg-white/30" />
+              <span>{formatDate(post.published_at)}</span>
+              <span className="h-px w-7 bg-white/30" />
+              <span className="flex items-center gap-1.5">
+                <Clock3 size={12} /> {readingTime(post.content)} min read
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
-      {post.cover_image_url && (
-        <div className="container-wide">
-          <div className="relative aspect-[16/8.5] overflow-hidden rounded-[1.75rem] bg-clay">
-            <UserCoverImage src={post.cover_image_url} alt="" priority />
+      <div className="container-wide grid gap-10 py-14 lg:grid-cols-[13rem_minmax(0,760px)_1fr] lg:py-24">
+        <aside className="hidden lg:block">
+          <div className="sticky top-32 border-t border-line pt-5">
+            <p className="eyebrow text-terracotta">Field note</p>
+            <p className="mt-4 text-xs leading-6 text-stone">
+              Save this story for your next quiet moment in the kitchen.
+            </p>
+            <div className="mt-6">
+              <ShareButton title={post.title} />
+            </div>
+          </div>
+        </aside>
+
+        <div>
+          <div className="mb-10 flex items-center justify-between border-b border-line pb-5 lg:hidden">
+            <p className="eyebrow text-stone">The story</p>
+            <ShareButton title={post.title} />
+          </div>
+          <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+          {post.affiliate_links && post.affiliate_links.length > 0 && (
+            <section className="mt-14 border-y border-line py-8">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="text-terracotta" size={20} strokeWidth={1.5} />
+                <div>
+                  <p className="eyebrow text-terracotta">Shop this guide</p>
+                  <p className="mt-1 text-xs text-stone">
+                    Useful products mentioned in this story. Some links may earn us a commission.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 divide-y divide-line border-y border-line">
+                {post.affiliate_links.map((link) => (
+                  <div key={link.id} className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-display text-xl font-medium">{link.product_name}</h3>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-[.13em] text-stone">
+                        {link.merchant}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/go/${link.id}`}
+                      target="_blank"
+                      rel="nofollow sponsored noopener"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-[10px] font-bold uppercase tracking-[.12em] text-white"
+                    >
+                      {link.button_label} <ExternalLink size={13} />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          <div className="mt-16 border-y border-line py-8">
+            <Leaf className="text-terracotta" size={21} strokeWidth={1.5} />
+            <p className="eyebrow mt-5 text-terracotta">Our considered promise</p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-stone">
+              We recommend tools for how they perform in real kitchens. Our
+              editorial opinions are independent, and we make the tradeoffs as
+              visible as the benefits.
+            </p>
           </div>
         </div>
-      )}
 
-      <div className="container-reading grid py-12 md:py-18">
-        <div className="mb-9 flex items-center justify-between border-b border-line pb-5">
-          <p className="eyebrow text-stone">The guide</p>
-          <button className="inline-flex items-center gap-2 text-xs font-bold text-stone hover:text-ink" aria-label="Share article">
-            <Share2 size={15} /> Share
-          </button>
-        </div>
-        <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
-        <div className="mt-14 rounded-3xl bg-cream p-6 md:p-8">
-          <p className="eyebrow text-terracotta">A note on our reviews</p>
-          <p className="mt-3 text-sm leading-7 text-stone">
-            We recommend tools for how they perform in real kitchens. Our editorial
-            opinions are independent, and we explain the tradeoffs—not just the specs.
+        <div className="hidden lg:block">
+          <p className="vertical-label ml-auto text-[9px] font-bold uppercase tracking-[.25em] text-stone/50">
+            Kitchen Made Health · Journal
           </p>
         </div>
       </div>
 
       {relatedPosts.length > 0 && (
-        <section className="border-t border-line bg-cream">
-          <div className="container-wide py-14 md:py-20">
-            <div className="mb-8 flex items-end justify-between">
+        <section className="bg-cream">
+          <div className="container-wide py-16 md:py-24">
+            <div className="mb-12 flex items-end justify-between border-b border-line pb-7">
               <div>
                 <p className="eyebrow text-terracotta">Keep reading</p>
-                <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-.04em]">More from this shelf</h2>
+                <h2 className="mt-3 font-display text-5xl font-medium tracking-[-.05em]">
+                  More from this shelf
+                </h2>
               </div>
-              <Link href="/blog" className="hidden items-center gap-2 text-sm font-bold sm:inline-flex">
-                All guides <ArrowUpRight size={16} />
+              <Link
+                href="/blog"
+                className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] sm:inline-flex"
+              >
+                All stories <ArrowUpRight size={14} />
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {relatedPosts.map((item) => <PostCard key={item.id} post={item} />)}
+            <div className="grid gap-x-8 gap-y-12 md:grid-cols-3">
+              {relatedPosts.map((item, index) => (
+                <PostCard key={item.id} post={item} index={index + 1} />
+              ))}
             </div>
           </div>
         </section>

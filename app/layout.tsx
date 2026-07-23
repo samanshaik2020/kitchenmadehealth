@@ -6,8 +6,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com",
   ),
   title: {
-    default: "KitchenMadeHealth — Cook well. Live well.",
-    template: "%s | KitchenMadeHealth",
+    default: "Kitchen Made Health — The art of living well",
+    template: "%s | Kitchen Made Health",
   },
   description:
     "Thoughtful guides for healthier cooking, smarter kitchen tools, and everyday habits that feel good enough to keep.",

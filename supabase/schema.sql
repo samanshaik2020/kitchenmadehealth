@@ -1,5 +1,7 @@
 -- KitchenMadeHealth initial schema
 -- Run this file in the Supabase SQL Editor.
+-- Then run supabase/migrations/20260723_editorial_workspace.sql to add the
+-- complete editorial workflow (scheduling, revisions, tags, analytics, and more).
 
 create extension if not exists "pgcrypto";
 

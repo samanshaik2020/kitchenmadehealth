@@ -6,7 +6,7 @@ export function Badge({
   className,
 }: {
   children: React.ReactNode;
-  variant?: "neutral" | "published" | "draft";
+  variant?: "neutral" | "published" | "scheduled" | "draft";
   className?: string;
 }) {
   return (
@@ -14,6 +14,7 @@ export function Badge({
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.08em]",
         variant === "published" && "bg-sage/20 text-sage-dark",
+        variant === "scheduled" && "bg-amber-100 text-amber-800",
         variant === "draft" && "bg-clay text-brown",
         variant === "neutral" && "bg-cream text-stone",
         className,

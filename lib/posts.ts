@@ -93,7 +93,19 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   if (error) {
     return demoPosts.find((post) => post.slug === slug) ?? null;
   }
-  return data as unknown as Post | null;
+  if (!data) return null;
+
+  const { data: affiliateLinks } = await supabase
+    .from("affiliate_links")
+    .select("*")
+    .eq("post_id", data.id)
+    .eq("active", true)
+    .order("created_at");
+
+  return {
+    ...(data as unknown as Post),
+    affiliate_links: affiliateLinks ?? [],
+  };
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {

@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-paper: #fbfcf8;
-  --color-cream: #f0f5eb;
-  --color-clay: #e2ecdc;
-  --color-line: #d4dfcf;
-  --color-ink: #173b2e;
-  --color-stone: #63766d;
-  --color-brown: #476557;
-  --color-terracotta: #e26f51;
-  --color-terracotta-dark: #c45338;
-  --color-sage: #8eaa7e;
-  --color-sage-dark: #315c47;
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-sans: "Segoe UI", Arial, Helvetica, sans-serif;
+  --color-paper: #f6f2e9;
+  --color-cream: #ece5d6;
+  --color-clay: #ded2bc;
+  --color-line: #d3cab8;
+  --color-ink: #10261d;
+  --color-stone: #667068;
+  --color-brown: #705a42;
+  --color-terracotta: #c9623f;
+  --color-terracotta-dark: #a9462b;
+  --color-sage: #9dad82;
+  --color-sage-dark: #274a38;
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
 }
 
 * {
@@ -28,7 +28,7 @@ body {
   margin: 0;
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  font-family: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
@@ -50,7 +50,7 @@ select {
 }
 
 .container-wide {
-  width: min(1180px, calc(100% - 2rem));
+  width: min(1260px, calc(100% - 3rem));
   margin-inline: auto;
 }
 
@@ -60,20 +60,103 @@ select {
 }
 
 .eyebrow {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
 .dot-grid {
-  background-image: radial-gradient(rgba(49, 92, 71, 0.16) 0.75px, transparent 0.75px);
-  background-size: 16px 16px;
+  background-image: radial-gradient(rgba(39, 74, 56, 0.18) 0.75px, transparent 0.75px);
+  background-size: 18px 18px;
+}
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.12;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.outline-type {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(246, 242, 233, 0.55);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.vertical-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.hero-rise {
+  animation: hero-rise 900ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.hero-rise-delay-1 {
+  animation-delay: 120ms;
+}
+
+.hero-rise-delay-2 {
+  animation-delay: 240ms;
+}
+
+.hero-rise-delay-3 {
+  animation-delay: 360ms;
+}
+
+.float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 34s linear infinite;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .article-content {
-  color: #41584d;
-  font-family: Georgia, "Times New Roman", serif;
+  color: #435249;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-size: 1.13rem;
   line-height: 1.9;
 }
@@ -85,7 +168,7 @@ select {
 .article-content h2,
 .article-content h3 {
   color: var(--color-ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -103,10 +186,10 @@ select {
 
 .article-content blockquote {
   margin-block: 2.5rem;
-  border-left: 3px solid var(--color-terracotta);
-  padding: 0.5rem 0 0.5rem 1.6rem;
-  color: var(--color-brown);
-  font-size: 1.45rem;
+  border-block: 1px solid var(--color-line);
+  padding: 2rem 0;
+  color: var(--color-ink);
+  font-size: 1.6rem;
   font-style: italic;
   line-height: 1.5;
 }
@@ -139,5 +222,17 @@ select {
   .article-content {
     font-size: 1.05rem;
     line-height: 1.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-rise,
+  .float-slow,
+  .marquee-track {
+    animation: none;
   }
 }

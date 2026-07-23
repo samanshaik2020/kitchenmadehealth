@@ -33,7 +33,7 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
       <button
         type="submit"
         disabled={pending}
-        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-bold text-white transition hover:bg-black disabled:opacity-60"
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-terracotta px-6 text-xs font-bold uppercase tracking-[.1em] text-white transition hover:bg-terracotta-dark disabled:opacity-60"
       >
         {pending ? <LoaderCircle size={17} className="animate-spin" /> : demoMode ? "Open demo dashboard" : "Sign in"}
         {!pending && <ArrowRight size={17} />}
