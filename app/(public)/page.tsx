@@ -4,12 +4,14 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
+  Calculator,
   Leaf,
   Quote,
   Sparkles,
 } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
 import { Newsletter } from "@/components/site/newsletter";
+import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
 import { formatDate, readingTime } from "@/lib/utils";
 
@@ -171,6 +173,60 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="border-y border-line bg-[#ede4d5] py-12 md:py-16">
+        <div className="container-wide">
+          <div className="grid overflow-hidden rounded-[2rem] bg-ink text-white shadow-[0_24px_70px_rgba(12,38,29,.16)] md:grid-cols-[1.25fr_.75fr]">
+            <div className="p-7 sm:p-10 md:p-12">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[.19em] text-sage">
+                <Calculator size={15} />
+                New · private health tools
+              </div>
+              <h2 className="mt-5 max-w-2xl font-display text-4xl font-medium tracking-[-.05em] sm:text-5xl">
+                Start with a useful estimate.
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">
+                Check BMI, plan calories and macros, estimate body fat, explore
+                daily water needs, or find an adult weight reference range. Every
+                calculation stays in your browser.
+              </p>
+              <Link
+                href="/health-calculators"
+                className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-cream px-6 text-xs font-bold uppercase tracking-[.09em] text-ink transition hover:-translate-y-0.5 hover:bg-white"
+              >
+                Open the free tools <ArrowUpRight size={15} />
+              </Link>
+            </div>
+            <div className="dot-grid grid grid-cols-2 border-t border-white/10 bg-white/5 p-7 md:border-l md:border-t-0 md:p-10">
+              {[
+                "BMI",
+                "Calories + macros",
+                "Body fat",
+                "Daily water",
+                "Weight range",
+              ].map((tool, index) => (
+                <div
+                  key={tool}
+                  className={`flex min-h-24 flex-col justify-between border-white/12 p-4 ${
+                    index === 4
+                      ? "col-span-2 items-center"
+                      : `${index % 2 === 0 ? "border-r" : ""} ${
+                          index < 4 ? "border-b" : ""
+                        }`
+                  }`}
+                >
+                  <span className="font-display text-xl italic text-terracotta">
+                    0{index + 1}
+                  </span>
+                  <span className="mt-5 text-[10px] font-bold uppercase tracking-[.12em] text-white/60">
+                    {tool}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#0d281e] py-20 text-white md:py-28">
         <div className="container-wide">
           <div className="mb-12 grid gap-5 md:grid-cols-[1fr_.65fr] md:items-end">
@@ -225,11 +281,9 @@ export default async function HomePage() {
           <div className="grid min-h-[46rem] lg:grid-cols-[1.08fr_.92fr]">
             <Link href={`/blog/${featured.slug}`} className="group relative min-h-[30rem] overflow-hidden">
               {featured.cover_image_url && (
-                <Image
+                <UserCoverImage
                   src={featured.cover_image_url}
-                  alt=""
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  alt={featured.cover_image_alt ?? ""}
                   className="object-cover transition duration-700 group-hover:scale-[1.025]"
                 />
               )}

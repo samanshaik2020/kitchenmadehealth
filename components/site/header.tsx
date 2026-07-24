@@ -8,6 +8,7 @@ import { Logo } from "@/components/site/logo";
 const links = [
   { href: "/welcome", label: "Our story" },
   { href: "/blog", label: "Journal" },
+  { href: "/health-calculators", label: "Health tools" },
   { href: "/category/cookware", label: "Cookware" },
   { href: "/category/kitchen-guides", label: "Kitchen rituals" },
 ];
@@ -20,7 +21,7 @@ export function SiteHeader() {
       <div className="container-wide flex h-[4.75rem] items-center justify-between">
         <Logo inverse />
         <div className="hidden items-center gap-8 md:flex">
-          <nav className="flex items-center gap-7" aria-label="Primary navigation">
+          <nav className="flex items-center gap-6" aria-label="Primary navigation">
             {links.map((link) => (
               <Link
                 key={link.href}

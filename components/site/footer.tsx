@@ -20,6 +20,7 @@ export function SiteFooter() {
           <div className="space-y-3 text-sm">
             <Link className="block text-white/75 hover:text-white" href="/welcome">Our story</Link>
             <Link className="block text-white/75 hover:text-white" href="/blog">The journal</Link>
+            <Link className="block text-white/75 hover:text-white" href="/health-calculators">Health tools</Link>
             <Link className="block text-white/75 hover:text-white" href="/category/cookware">Cookware</Link>
             <Link className="block text-white/75 hover:text-white" href="/category/kitchen-guides">Kitchen rituals</Link>
           </div>
