@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
+import { IntroExperience } from "@/components/site/intro-experience";
 import { Newsletter } from "@/components/site/newsletter";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
@@ -55,6 +56,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <IntroExperience />
       <section className="grain relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-ink text-white">
         <Image
           src="/images/kitchen-made-health-hero.webp"
@@ -333,9 +335,14 @@ export default async function HomePage() {
           </Link>
         </div>
         {latest.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {latest.slice(0, 3).map((post, index) => (
-              <PostCard key={post.id} post={post} index={index + 1} />
+          <div className="grid gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-6">
+            {latest.map((post, index) => (
+              <div
+                key={post.id}
+                className={index < 3 ? "lg:col-span-2" : "lg:col-span-3"}
+              >
+                <PostCard post={post} index={index + 2} />
+              </div>
             ))}
           </div>
         ) : (
