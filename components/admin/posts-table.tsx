@@ -14,6 +14,7 @@ import {
 import { bulkUpdatePosts } from "@/app/(admin)/dashboard/actions";
 import { PostRowActions } from "@/components/admin/post-row-actions";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import type { Category, Post, PostStatus } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -37,6 +38,7 @@ export function PostsTable({
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkCategory, setBulkCategory] = useState("");
   const [message, setMessage] = useState("");
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
@@ -63,17 +65,16 @@ export function PostsTable({
     categoryId?: string,
   ) {
     if (!selected.length) return;
-    if (
-      operation === "delete" &&
-      !window.confirm(`Delete ${selected.length} selected ${selected.length === 1 ? "post" : "posts"}?`)
-    ) {
-      return;
-    }
     setMessage("");
     startTransition(async () => {
       try {
         await bulkUpdatePosts(selected, operation, categoryId);
-        setMessage(`${selected.length} ${selected.length === 1 ? "post" : "posts"} updated.`);
+        setMessage(
+          operation === "delete"
+            ? `${selected.length} ${selected.length === 1 ? "blog" : "blogs"} deleted.`
+            : `${selected.length} ${selected.length === 1 ? "post" : "posts"} updated.`,
+        );
+        if (operation === "delete") setBulkDeleteOpen(false);
         setSelected([]);
         setBulkCategory("");
         router.refresh();
@@ -165,7 +166,10 @@ export function PostsTable({
           </div>
           <button
             disabled={pending}
-            onClick={() => runBulk("delete")}
+            onClick={() => {
+              setMessage("");
+              setBulkDeleteOpen(true);
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-red-50 px-4 py-2 text-[10px] font-bold uppercase tracking-[.1em] text-red-700"
           >
             <Trash2 size={13} /> Delete
@@ -263,6 +267,20 @@ export function PostsTable({
           <p className="mt-2 text-sm text-stone">Adjust the filters or start a new story.</p>
         </div>
       )}
+
+      <ConfirmDeleteDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selected.length} selected ${selected.length === 1 ? "blog" : "blogs"}?`}
+        description={`The selected ${selected.length === 1 ? "blog" : "blogs"} will be permanently deleted, including related revisions, comments, and editorial data. This cannot be undone.`}
+        confirmLabel={selected.length === 1 ? "Delete blog" : "Delete blogs"}
+        pending={pending}
+        error={bulkDeleteOpen ? message : ""}
+        onCancel={() => {
+          setMessage("");
+          setBulkDeleteOpen(false);
+        }}
+        onConfirm={() => runBulk("delete")}
+      />
     </section>
   );
 }

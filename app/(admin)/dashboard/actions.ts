@@ -555,92 +555,230 @@ export async function bulkUpdatePosts(
   return { success: true };
 }
 
-export async function createTaxonomy(kind: "category" | "tag", formData: FormData) {
-  if (!isSupabaseConfigured()) return;
-  const name = z.string().trim().min(2).max(80).parse(formData.get("name"));
-  const { supabase, user } = await getAuthenticatedClient();
-  const result =
-    kind === "category"
-      ? await supabase
-          .from("categories")
-          .insert({
-            name,
-            slug: slugify(name),
-            description: String(formData.get("description") ?? "") || null,
-          })
-          .select("id")
-          .single()
-      : await supabase
-          .from("tags")
-          .insert({ name, slug: slugify(name) })
-          .select("id")
-          .single();
-  const { data, error } = result;
-  if (error) throw new Error(error.message);
-  await logActivity(supabase, user.id, "created", kind, data.id, { name });
-  revalidatePath("/dashboard/taxonomy");
+const taxonomyNameSchema = z.string().trim().min(2, "Use at least 2 characters.").max(80);
+const taxonomyDescriptionSchema = z.string().trim().max(240, "Keep the description under 240 characters.");
+
+function taxonomyUnavailable(): ActionState {
+  return {
+    success: false,
+    message: "Connect Supabase before changing categories or tags.",
+  };
+}
+
+function taxonomyError(error: unknown): ActionState {
+  const message = error instanceof Error ? error.message : "The change could not be saved.";
+  return { success: false, message: databaseUpgradeMessage(message) };
+}
+
+function revalidateTaxonomy() {
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/taxonomy");
+  revalidatePath("/dashboard/posts/new");
+  revalidatePath("/sitemap.xml");
+}
+
+export async function createTaxonomy(
+  kind: "category" | "tag",
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  if (!isSupabaseConfigured()) return taxonomyUnavailable();
+
+  const nameResult = taxonomyNameSchema.safeParse(formData.get("name"));
+  const descriptionResult = taxonomyDescriptionSchema.safeParse(
+    String(formData.get("description") ?? ""),
+  );
+  if (!nameResult.success) {
+    return { success: false, message: nameResult.error.issues[0]?.message ?? "Enter a valid name." };
+  }
+  if (kind === "category" && !descriptionResult.success) {
+    return {
+      success: false,
+      message: descriptionResult.error.issues[0]?.message ?? "Enter a valid description.",
+    };
+  }
+
+  const name = nameResult.data;
+  const description = descriptionResult.success ? descriptionResult.data : "";
+  try {
+    const { supabase, user } = await getAuthenticatedClient();
+    const result =
+      kind === "category"
+        ? await supabase
+            .from("categories")
+            .insert({
+              name,
+              slug: slugify(name),
+              description: description || null,
+            })
+            .select("id")
+            .single()
+        : await supabase
+            .from("tags")
+            .insert({ name, slug: slugify(name) })
+            .select("id")
+            .single();
+    const { data, error } = result;
+    if (error) throw new Error(error.message);
+
+    await logActivity(supabase, user.id, "created", kind, data.id, { name });
+    revalidateTaxonomy();
+    return {
+      success: true,
+      message: `${kind === "category" ? "Category" : "Tag"} created.`,
+    };
+  } catch (error) {
+    return taxonomyError(error);
+  }
 }
 
 export async function renameTaxonomy(
   kind: "category" | "tag",
   id: string,
+  _previousState: ActionState,
   formData: FormData,
-) {
-  if (!isSupabaseConfigured()) return;
-  const name = z.string().trim().min(2).max(80).parse(formData.get("name"));
-  const { supabase, user } = await getAuthenticatedClient();
-  const table = kind === "category" ? "categories" : "tags";
-  const { error } = await supabase
-    .from(table)
-    .update({ name, slug: slugify(name) })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-  await logActivity(supabase, user.id, "renamed", kind, id, { name });
-  revalidatePath("/dashboard/taxonomy");
-  revalidatePath("/blog");
+): Promise<ActionState> {
+  if (!isSupabaseConfigured()) return taxonomyUnavailable();
+
+  const idResult = z.string().uuid().safeParse(id);
+  const nameResult = taxonomyNameSchema.safeParse(formData.get("name"));
+  const descriptionResult = taxonomyDescriptionSchema.safeParse(
+    String(formData.get("description") ?? ""),
+  );
+  if (!idResult.success) return { success: false, message: "This item has an invalid ID." };
+  if (!nameResult.success) {
+    return { success: false, message: nameResult.error.issues[0]?.message ?? "Enter a valid name." };
+  }
+  if (kind === "category" && !descriptionResult.success) {
+    return {
+      success: false,
+      message: descriptionResult.error.issues[0]?.message ?? "Enter a valid description.",
+    };
+  }
+
+  const name = nameResult.data;
+  const description = descriptionResult.success ? descriptionResult.data : "";
+  try {
+    const { supabase, user } = await getAuthenticatedClient();
+    const table = kind === "category" ? "categories" : "tags";
+    const payload =
+      kind === "category"
+        ? { name, slug: slugify(name), description: description || null }
+        : { name, slug: slugify(name) };
+    const { data, error } = await supabase
+      .from(table)
+      .update(payload)
+      .eq("id", idResult.data)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("This item no longer exists or you do not have permission to edit it.");
+
+    await logActivity(supabase, user.id, "updated", kind, idResult.data, { name });
+    revalidateTaxonomy();
+    return {
+      success: true,
+      message: `${kind === "category" ? "Category" : "Tag"} updated.`,
+    };
+  } catch (error) {
+    return taxonomyError(error);
+  }
+}
+
+export async function deleteTaxonomy(
+  kind: "category" | "tag",
+  id: string,
+  _previousState: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  void _previousState;
+  void _formData;
+  if (!isSupabaseConfigured()) return taxonomyUnavailable();
+
+  const idResult = z.string().uuid().safeParse(id);
+  if (!idResult.success) return { success: false, message: "This item has an invalid ID." };
+
+  try {
+    const { supabase, user } = await getAuthenticatedClient();
+    const table = kind === "category" ? "categories" : "tags";
+    const { data, error } = await supabase
+      .from(table)
+      .delete()
+      .eq("id", idResult.data)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("This item no longer exists or you do not have permission to delete it.");
+
+    await logActivity(supabase, user.id, "deleted", kind, idResult.data);
+    revalidateTaxonomy();
+    return {
+      success: true,
+      message: `${kind === "category" ? "Category" : "Tag"} deleted.`,
+    };
+  } catch (error) {
+    return taxonomyError(error);
+  }
 }
 
 export async function mergeTaxonomy(
   kind: "category" | "tag",
   sourceId: string,
+  _previousState: ActionState,
   formData: FormData,
-) {
-  if (!isSupabaseConfigured()) return;
-  const targetId = z.string().uuid().parse(formData.get("target_id"));
-  if (targetId === sourceId) throw new Error("Choose a different destination.");
-  const { supabase, user } = await getAuthenticatedClient();
+): Promise<ActionState> {
+  if (!isSupabaseConfigured()) return taxonomyUnavailable();
 
-  if (kind === "category") {
-    const { error: updateError } = await supabase
-      .from("posts")
-      .update({ category_id: targetId })
-      .eq("category_id", sourceId);
-    if (updateError) throw new Error(updateError.message);
-    const { error } = await supabase.from("categories").delete().eq("id", sourceId);
-    if (error) throw new Error(error.message);
-  } else {
-    const { data: assignments, error: readError } = await supabase
-      .from("post_tags")
-      .select("post_id")
-      .eq("tag_id", sourceId);
-    if (readError) throw new Error(readError.message);
-    if (assignments?.length) {
-      const { error: upsertError } = await supabase.from("post_tags").upsert(
-        assignments.map((item) => ({ post_id: item.post_id, tag_id: targetId })),
-        { onConflict: "post_id,tag_id", ignoreDuplicates: true },
-      );
-      if (upsertError) throw new Error(upsertError.message);
-    }
-    const { error } = await supabase.from("tags").delete().eq("id", sourceId);
-    if (error) throw new Error(error.message);
+  const sourceResult = z.string().uuid().safeParse(sourceId);
+  const targetResult = z.string().uuid().safeParse(formData.get("target_id"));
+  if (!sourceResult.success || !targetResult.success) {
+    return { success: false, message: "Choose a valid merge destination." };
+  }
+  if (targetResult.data === sourceResult.data) {
+    return { success: false, message: "Choose a different destination." };
   }
 
-  await logActivity(supabase, user.id, "merged", kind, sourceId, {
-    target_id: targetId,
-  });
-  revalidatePath("/dashboard/taxonomy");
-  revalidatePath("/blog");
+  try {
+    const { supabase, user } = await getAuthenticatedClient();
+
+    if (kind === "category") {
+      const { error: updateError } = await supabase
+        .from("posts")
+        .update({ category_id: targetResult.data })
+        .eq("category_id", sourceResult.data);
+      if (updateError) throw new Error(updateError.message);
+      const { error } = await supabase.from("categories").delete().eq("id", sourceResult.data);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: assignments, error: readError } = await supabase
+        .from("post_tags")
+        .select("post_id")
+        .eq("tag_id", sourceResult.data);
+      if (readError) throw new Error(readError.message);
+      if (assignments?.length) {
+        const { error: upsertError } = await supabase.from("post_tags").upsert(
+          assignments.map((item) => ({ post_id: item.post_id, tag_id: targetResult.data })),
+          { onConflict: "post_id,tag_id", ignoreDuplicates: true },
+        );
+        if (upsertError) throw new Error(upsertError.message);
+      }
+      const { error } = await supabase.from("tags").delete().eq("id", sourceResult.data);
+      if (error) throw new Error(error.message);
+    }
+
+    await logActivity(supabase, user.id, "merged", kind, sourceResult.data, {
+      target_id: targetResult.data,
+    });
+    revalidateTaxonomy();
+    return {
+      success: true,
+      message: `${kind === "category" ? "Category" : "Tag"} merged.`,
+    };
+  } catch (error) {
+    return taxonomyError(error);
+  }
 }
 
 export async function moderateComment(id: string, status: CommentStatus) {

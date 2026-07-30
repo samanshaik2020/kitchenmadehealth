@@ -469,7 +469,15 @@ export function PostForm({
             <p className="eyebrow text-terracotta">Publishing</p>
             <h2 className="mt-2 font-display text-2xl font-medium">Story settings</h2>
             <div className="mt-5">
-              <Label htmlFor="category_id">Category</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="category_id">Category</Label>
+                <Link
+                  href="/dashboard/taxonomy#categories"
+                  className="mb-2 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[.09em] text-terracotta hover:text-ink"
+                >
+                  <Plus size={11} /> Manage categories
+                </Link>
+              </div>
               <select
                 id="category_id"
                 name="category_id"
