@@ -38,6 +38,7 @@ import {
   type Sex,
 } from "@/lib/health-calculators";
 import { cn } from "@/lib/utils";
+import { BodyMetricVisual } from "@/components/health/body-metric-visual";
 
 type ToolId = "bmi" | "calories" | "body-fat" | "water" | "weight";
 
@@ -334,14 +335,31 @@ function ResultBadge({
   );
 }
 
-function ResultHeading({ label, value, unit }: { label: string; value: string; unit: string }) {
+function ResultHeading({
+  label,
+  value,
+  unit,
+  visual,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  visual?: ReactNode;
+}) {
   return (
-    <div aria-live="polite">
-      <p className="eyebrow text-sage">{label}</p>
-      <p className="mt-4 font-display text-[4.4rem] font-medium leading-none tracking-[-.065em] sm:text-[5.5rem]">
-        {value}
-      </p>
-      <p className="mt-2 text-sm text-white/55">{unit}</p>
+    <div
+      className={cn(
+        visual && "grid items-start gap-6 sm:grid-cols-[minmax(0,1fr)_15rem]",
+      )}
+    >
+      <div aria-live="polite">
+        <p className="eyebrow text-sage">{label}</p>
+        <p className="mt-4 font-display text-[4.4rem] font-medium leading-none tracking-[-.065em] sm:text-[5.5rem]">
+          {value}
+        </p>
+        <p className="mt-2 text-sm text-white/55">{unit}</p>
+      </div>
+      {visual && <div className="w-full sm:max-w-60">{visual}</div>}
     </div>
   );
 }
@@ -437,6 +455,7 @@ function BmiCalculator() {
           <ResultHeading
             label="Your BMI"
             value={formatNumber(result.bmi, 1)}
+            visual={<BodyMetricVisual variant="bmi" bmi={result.bmi} />}
             unit="kg/m²"
           />
           <ResultBadge tone={category.tone}>{category.label}</ResultBadge>
@@ -672,6 +691,18 @@ function CalorieCalculator() {
           <ResultHeading
             label="Daily calorie target"
             value={formatNumber(result.target)}
+            visual={
+              <BodyMetricVisual
+                variant="calories"
+                sex={sex}
+                bmi={calculateBmi(height, weight).bmi}
+                calories={result.target}
+                goal={goal}
+                proteinCalories={result.proteinKcal}
+                carbohydrateCalories={result.carbKcal}
+                fatCalories={result.fatKcal}
+              />
+            }
             unit="estimated kcal per day"
           />
           {result.wasFloored && (
@@ -902,6 +933,13 @@ function BodyFatCalculator() {
           <ResultHeading
             label="Estimated body fat"
             value={formatNumber(result.bodyFat, 1)}
+            visual={
+              <BodyMetricVisual
+                variant="body-fat"
+                sex={sex}
+                bodyFat={result.bodyFat}
+              />
+            }
             unit="percent"
           />
           <ResultBadge tone={category.tone}>{category.label}</ResultBadge>
@@ -987,6 +1025,13 @@ function WaterCalculator() {
           <ResultHeading
             label="Daily total-water guide"
             value={formatNumber(result.totalLitres, 1)}
+            visual={
+              <BodyMetricVisual
+                variant="water"
+                litres={result.totalLitres}
+                glasses={result.glasses}
+              />
+            }
             unit={`litres, or about ${result.glasses} × 250 ml glasses`}
           />
           <ResultBadge tone="blue">Food + all fluids count</ResultBadge>
@@ -1055,6 +1100,14 @@ function HealthyWeightCalculator() {
           <ResultHeading
             label="BMI reference range"
             value={rangeLabel}
+            visual={
+              <BodyMetricVisual
+                variant="weight"
+                lowKg={result.lowKg}
+                midpointKg={result.midpointKg}
+                highKg={result.highKg}
+              />
+            }
             unit="kilograms"
           />
           <ResultBadge tone="green">Adult screening reference</ResultBadge>
