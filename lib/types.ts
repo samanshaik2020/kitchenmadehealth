@@ -28,6 +28,24 @@ export type AffiliateLink = {
   updated_at: string;
 };
 
+export type Product = {
+  id: string;
+  created_by: string;
+  name: string;
+  details: string;
+  price: string;
+  image_url: string;
+  image_alt: string | null;
+  affiliate_url: string;
+  button_label: string;
+  active: boolean;
+  featured: boolean;
+  sort_order: number;
+  click_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PostRevision = {
   id: string;
   post_id: string;

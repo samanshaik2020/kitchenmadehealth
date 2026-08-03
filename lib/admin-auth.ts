@@ -37,7 +37,7 @@ export function databaseUpgradeMessage(message: string) {
     message.includes("schema cache") ||
     message.includes("column")
   ) {
-    return "Run supabase/migrations/20260723_editorial_workspace.sql, then try again.";
+    return "Run the pending SQL files in supabase/migrations, then try again.";
   }
   return message;
 }

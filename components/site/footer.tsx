@@ -21,8 +21,9 @@ export function SiteFooter() {
             <Link className="block text-white/75 hover:text-white" href="/welcome">Our story</Link>
             <Link className="block text-white/75 hover:text-white" href="/blog">The journal</Link>
             <Link className="block text-white/75 hover:text-white" href="/health-calculators">Health tools</Link>
-            <Link className="block text-white/75 hover:text-white" href="/category/cookware">Cookware</Link>
-            <Link className="block text-white/75 hover:text-white" href="/category/kitchen-guides">Kitchen rituals</Link>
+            <Link className="block text-white/75 hover:text-white" href="/category/diabetes-blood-sugar">Diabetes &amp; blood sugar</Link>
+            <Link className="block text-white/75 hover:text-white" href="/category/home-remedies">Home remedies</Link>
+            <Link className="block text-white/75 hover:text-white" href="/products">Products</Link>
           </div>
         </div>
         <div>

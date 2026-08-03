@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquareText,
+  Package,
   ShoppingBag,
   Tags,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const navigation = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/posts/new", label: "New story", icon: FilePlus2 },
   { href: "/dashboard/taxonomy", label: "Categories & tags", icon: Tags },
+  { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/affiliates", label: "Affiliate links", icon: ShoppingBag },
   { href: "/dashboard/comments", label: "Comments", icon: MessageSquareText },

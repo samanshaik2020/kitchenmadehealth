@@ -6,6 +6,7 @@ import {
   Database,
   ImageIcon,
   KeyRound,
+  Package,
   Workflow,
 } from "lucide-react";
 
@@ -23,10 +24,16 @@ const steps = [
     code: "supabase/migrations/20260723_editorial_workspace.sql",
   },
   {
+    icon: Package,
+    title: "Add products and health shelves",
+    body: "Run the latest migration to replace the retired navigation categories, add the product catalog, click tracking, RLS, and product-image storage.",
+    code: "supabase/migrations/20260803_products_and_health_categories.sql",
+  },
+  {
     icon: ImageIcon,
     title: "Confirm image storage",
-    body: "Keep the public Storage bucket named post-images. Cover uploads are written to its covers/ folder.",
-    code: "post-images/covers/",
+    body: "Keep both public Storage buckets. Story covers use post-images/covers and product photos use product-images/catalog.",
+    code: "post-images/covers/ + product-images/catalog/",
   },
   {
     icon: KeyRound,

@@ -9,8 +9,9 @@ const links = [
   { href: "/welcome", label: "Our story" },
   { href: "/blog", label: "Journal" },
   { href: "/health-calculators", label: "Health tools" },
-  { href: "/category/cookware", label: "Cookware" },
-  { href: "/category/kitchen-guides", label: "Kitchen rituals" },
+  { href: "/category/diabetes-blood-sugar", label: "Diabetes & blood sugar" },
+  { href: "/category/home-remedies", label: "Home remedies" },
+  { href: "/products", label: "Products" },
 ];
 
 export function SiteHeader() {
@@ -20,8 +21,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0d241b]/95 text-white shadow-[0_12px_40px_rgba(4,17,12,.12)] backdrop-blur-xl">
       <div className="container-wide flex h-[4.75rem] items-center justify-between">
         <Logo inverse />
-        <div className="hidden items-center gap-8 md:flex">
-          <nav className="flex items-center gap-6" aria-label="Primary navigation">
+        <div className="hidden items-center gap-5 min-[1120px]:flex">
+          <nav className="flex items-center gap-4" aria-label="Primary navigation">
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -39,7 +40,7 @@ export function SiteHeader() {
             Explore the journal <ArrowUpRight size={14} />
           </Link>
         </div>
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 min-[1120px]:hidden">
           <Link href="/blog" className="grid size-10 place-items-center rounded-full text-white hover:bg-white/10" aria-label="Browse articles">
             <Search size={19} />
           </Link>
@@ -49,7 +50,7 @@ export function SiteHeader() {
         </div>
       </div>
       {open && (
-        <nav className="border-t border-white/10 bg-[#0d241b] px-5 py-4 shadow-xl md:hidden" aria-label="Mobile navigation">
+        <nav className="border-t border-white/10 bg-[#0d241b] px-5 py-4 shadow-xl min-[1120px]:hidden" aria-label="Mobile navigation">
           {links.map((link) => (
             <Link
               key={link.href}

@@ -5,6 +5,41 @@ import type { Category, Post } from "@/lib/types";
 
 const POST_SELECT = "*, category:categories(*)";
 
+const LEGACY_CATEGORY_PRESENTATION: Record<
+  string,
+  Pick<Category, "name" | "slug" | "description">
+> = {
+  cookware: {
+    name: "Diabetes & blood sugar",
+    slug: "diabetes-blood-sugar",
+    description:
+      "Practical, evidence-aware guidance for steadier blood sugar, nourishing meals, and everyday diabetes care.",
+  },
+  "kitchen-guides": {
+    name: "Home remedies",
+    slug: "home-remedies",
+    description:
+      "Gentle, kitchen-rooted home remedies with clear limits, sensible precautions, and realistic expectations.",
+  },
+};
+
+const NEW_TO_LEGACY_CATEGORY: Record<string, string> = {
+  "diabetes-blood-sugar": "cookware",
+  "home-remedies": "kitchen-guides",
+};
+
+function presentCategory(category: Category): Category {
+  const replacement = LEGACY_CATEGORY_PRESENTATION[category.slug];
+  return replacement ? { ...category, ...replacement } : category;
+}
+
+function presentPost(post: Post): Post {
+  return {
+    ...post,
+    category: post.category ? presentCategory(post.category) : null,
+  };
+}
+
 function getDemoPublishedPosts(options?: {
   category?: string;
   page?: number;
@@ -31,7 +66,10 @@ export async function getCategories(): Promise<Category[]> {
   if (error) {
     return demoCategories;
   }
-  return data as Category[];
+  const presented = (data as Category[]).map(presentCategory);
+  return Array.from(
+    new Map(presented.map((category) => [category.slug, category])).values(),
+  );
 }
 
 export async function getPublishedPosts(options?: {
@@ -49,11 +87,21 @@ export async function getPublishedPosts(options?: {
   const supabase = await createClient();
   let categoryId: string | undefined;
   if (options?.category) {
-    const { data: category, error: categoryError } = await supabase
+    let { data: category, error: categoryError } = await supabase
       .from("categories")
       .select("id")
       .eq("slug", options.category)
       .maybeSingle();
+    const legacySlug = NEW_TO_LEGACY_CATEGORY[options.category];
+    if (!category && !categoryError && legacySlug) {
+      const legacyResult = await supabase
+        .from("categories")
+        .select("id")
+        .eq("slug", legacySlug)
+        .maybeSingle();
+      category = legacyResult.data;
+      categoryError = legacyResult.error;
+    }
     if (categoryError) return getDemoPublishedPosts(options);
     if (!category) return { posts: [], count: 0 };
     categoryId = category.id;
@@ -74,7 +122,10 @@ export async function getPublishedPosts(options?: {
   if (error) {
     return getDemoPublishedPosts(options);
   }
-  return { posts: (data ?? []) as unknown as Post[], count: count ?? 0 };
+  return {
+    posts: ((data ?? []) as unknown as Post[]).map(presentPost),
+    count: count ?? 0,
+  };
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
@@ -103,14 +154,20 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     .order("created_at");
 
   return {
-    ...(data as unknown as Post),
+    ...presentPost(data as unknown as Post),
     affiliate_links: affiliateLinks ?? [],
   };
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const categories = await getCategories();
-  return categories.find((category) => category.slug === slug) ?? null;
+  const stored = categories.find((category) => category.slug === slug);
+  if (stored) return stored;
+
+  const required = Object.values(LEGACY_CATEGORY_PRESENTATION).find(
+    (category) => category.slug === slug,
+  );
+  return required ? { id: `pending-${slug}`, ...required } : null;
 }
 
 export async function getDashboardPosts(): Promise<Post[]> {
@@ -135,7 +192,7 @@ export async function getDashboardPosts(): Promise<Post[]> {
     .select(POST_SELECT)
     .order("updated_at", { ascending: false });
   if (error) return getDemoPublishedPosts({ pageSize: 1000 }).posts;
-  return (data ?? []) as unknown as Post[];
+  return ((data ?? []) as unknown as Post[]).map(presentPost);
 }
 
 export async function getDashboardPost(id: string): Promise<Post | null> {
@@ -160,5 +217,5 @@ export async function getDashboardPost(id: string): Promise<Post | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) return demoPosts.find((post) => post.id === id) ?? null;
-  return data as unknown as Post | null;
+  return data ? presentPost(data as unknown as Post) : null;
 }

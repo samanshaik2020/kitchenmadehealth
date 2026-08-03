@@ -19,14 +19,14 @@ import { formatDate, readingTime } from "@/lib/utils";
 export const revalidate = 300;
 
 const categoryImages: Record<string, string> = {
-  cookware:
-    "https://images.unsplash.com/photo-1584990347449-a750607b346d?auto=format&fit=crop&w=1000&q=86",
+  "diabetes-blood-sugar":
+    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1000&q=86",
   knives:
     "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=1000&q=86",
   appliances:
     "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1000&q=86",
-  "kitchen-guides":
-    "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?auto=format&fit=crop&w=1000&q=86",
+  "home-remedies":
+    "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=1000&q=86",
 };
 
 const rituals = [

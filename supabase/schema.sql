@@ -1,7 +1,7 @@
 -- KitchenMadeHealth initial schema
 -- Run this file in the Supabase SQL Editor.
--- Then run supabase/migrations/20260723_editorial_workspace.sql to add the
--- complete editorial workflow (scheduling, revisions, tags, analytics, and more).
+-- Then run both SQL files in supabase/migrations in date order to add the
+-- complete editorial workflow, health categories, and product catalog.
 
 create extension if not exists "pgcrypto";
 
@@ -113,10 +113,10 @@ create policy "categories_admin_delete"
 
 insert into public.categories (name, slug, description)
 values
-  ('Cookware', 'cookware', 'Pans, pots, materials, and the tools that make stovetop cooking better.'),
+  ('Diabetes & blood sugar', 'diabetes-blood-sugar', 'Practical, evidence-aware guidance for steadier blood sugar, nourishing meals, and everyday diabetes care.'),
   ('Knives', 'knives', 'Sharper buying advice, care tips, and practical knife skills.'),
   ('Appliances', 'appliances', 'Honest guidance for the machines earning space on your counter.'),
-  ('Kitchen Guides', 'kitchen-guides', 'Straightforward answers for a calmer, more capable kitchen.')
+  ('Home remedies', 'home-remedies', 'Gentle, kitchen-rooted home remedies with clear limits, sensible precautions, and realistic expectations.')
 on conflict (slug) do update set
   name = excluded.name,
   description = excluded.description;
