@@ -45,6 +45,10 @@ export default async function PostPage({ params }: PageProps) {
     pageSize: 4,
   });
   const relatedPosts = related.filter((item) => item.id !== post.id).slice(0, 3);
+  const supportingImages = [
+    { url: post.supporting_image_1_url, alt: post.supporting_image_1_alt },
+    { url: post.supporting_image_2_url, alt: post.supporting_image_2_alt },
+  ].filter((image): image is { url: string; alt: string | null | undefined } => Boolean(image.url));
 
   return (
     <article>
@@ -109,6 +113,25 @@ export default async function PostPage({ params }: PageProps) {
             <ShareButton title={post.title} />
           </div>
           <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+          {supportingImages.length > 0 && (
+            <section
+              className={`mt-12 grid gap-4 ${supportingImages.length > 1 ? "sm:grid-cols-2" : ""}`}
+              aria-label="Story gallery"
+            >
+              {supportingImages.map((image, index) => (
+                <figure
+                  key={image.url}
+                  className="relative aspect-[4/3] overflow-hidden bg-cream shadow-[0_18px_48px_rgba(16,38,29,.08)]"
+                >
+                  <UserCoverImage
+                    src={image.url}
+                    alt={image.alt ?? `Supporting image ${index + 1} for ${post.title}`}
+                    className="object-cover"
+                  />
+                </figure>
+              ))}
+            </section>
+          )}
           {post.affiliate_links && post.affiliate_links.length > 0 && (
             <section className="mt-14 border-y border-line py-8">
               <div className="flex items-center gap-3">

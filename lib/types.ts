@@ -46,6 +46,22 @@ export type Product = {
   updated_at: string;
 };
 
+export type HtmlPageStatus = "draft" | "published";
+
+export type HtmlPage = {
+  id: string;
+  author_id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  html_content?: string;
+  original_filename: string;
+  status: HtmlPageStatus;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PostRevision = {
   id: string;
   post_id: string;
@@ -96,6 +112,10 @@ export type Post = {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  supporting_image_1_url?: string | null;
+  supporting_image_1_alt?: string | null;
+  supporting_image_2_url?: string | null;
+  supporting_image_2_alt?: string | null;
   status: PostStatus;
   seo_title: string | null;
   seo_description: string | null;
@@ -116,6 +136,10 @@ export type PostInput = {
   excerpt: string;
   content: string;
   cover_image_url: string;
+  supporting_image_1_url: string;
+  supporting_image_1_alt: string;
+  supporting_image_2_url: string;
+  supporting_image_2_alt: string;
   category_id: string;
   status: PostStatus;
   seo_title: string;

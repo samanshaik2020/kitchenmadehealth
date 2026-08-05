@@ -12,7 +12,8 @@ Supabase, and Tiptap.
 - Sitemap, robots rules, and RSS feed
 - Supabase email/password authentication
 - Private editorial dashboard with draft/published states
-- Tiptap rich-text editor, SEO controls, and cover image uploads
+- Tiptap rich-text editor, SEO controls, a cover, and two supporting image uploads
+- Sandboxed standalone HTML page publishing with stable `/pages/{slug}` URLs
 - Validated Server Actions for create, edit, publish, unpublish, and delete
 - RLS-protected database and Storage policies
 - Independent public product catalog with affiliate buttons and click tracking
@@ -34,9 +35,10 @@ and dashboard run in preview mode with sample content.
 2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL Editor.
 3. Run [`supabase/migrations/20260723_editorial_workspace.sql`](supabase/migrations/20260723_editorial_workspace.sql).
 4. Run [`supabase/migrations/20260803_products_and_health_categories.sql`](supabase/migrations/20260803_products_and_health_categories.sql).
-5. Copy `.env.example` to `.env.local` and add the project URL and anon key.
-6. Add an email/password editor in Supabase Authentication.
-7. Restart `npm run dev`, then sign in at `/login`.
+5. Run [`supabase/migrations/20260805_story_images_and_html_pages.sql`](supabase/migrations/20260805_story_images_and_html_pages.sql).
+6. Copy `.env.example` to `.env.local` and add the project URL and anon key.
+7. Add an email/password editor in Supabase Authentication.
+8. Restart `npm run dev`, then sign in at `/login`.
 
 The SQL setup creates the public `post-images` and `product-images` buckets and their policies. The
 service-role key is intentionally not used by the app; authenticated operations

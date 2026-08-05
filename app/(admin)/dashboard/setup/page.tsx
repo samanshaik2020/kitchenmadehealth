@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Database,
+  FileCode2,
   ImageIcon,
   KeyRound,
   Package,
@@ -30,10 +31,16 @@ const steps = [
     code: "supabase/migrations/20260803_products_and_health_categories.sql",
   },
   {
+    icon: FileCode2,
+    title: "Enable story images and HTML pages",
+    body: "Run the latest additive migration for two supporting story images and ownership-protected standalone HTML publishing.",
+    code: "supabase/migrations/20260805_story_images_and_html_pages.sql",
+  },
+  {
     icon: ImageIcon,
     title: "Confirm image storage",
-    body: "Keep both public Storage buckets. Story covers use post-images/covers and product photos use product-images/catalog.",
-    code: "post-images/covers/ + product-images/catalog/",
+    body: "Keep both public Storage buckets. Story covers and gallery images use post-images; product photos use product-images.",
+    code: "post-images/covers/ + post-images/story-gallery/ + product-images/catalog/",
   },
   {
     icon: KeyRound,

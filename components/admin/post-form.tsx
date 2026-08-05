@@ -11,6 +11,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import type { RefObject } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -72,6 +73,8 @@ type EditorAffiliate = Pick<
   "product_name" | "merchant" | "destination_url" | "button_label" | "disclosure" | "active"
 > & { id?: string };
 
+type ImageSlot = "cover" | "supporting-1" | "supporting-2";
+
 export function PostForm({
   post,
   categories,
@@ -103,6 +106,18 @@ export function PostForm({
   const [content, setContent] = useState(post?.content ?? "<p>Start writing your guide…</p>");
   const [coverUrl, setCoverUrl] = useState(post?.cover_image_url ?? "");
   const [coverAlt, setCoverAlt] = useState(post?.cover_image_alt ?? "");
+  const [supportingImage1Url, setSupportingImage1Url] = useState(
+    post?.supporting_image_1_url ?? "",
+  );
+  const [supportingImage1Alt, setSupportingImage1Alt] = useState(
+    post?.supporting_image_1_alt ?? "",
+  );
+  const [supportingImage2Url, setSupportingImage2Url] = useState(
+    post?.supporting_image_2_url ?? "",
+  );
+  const [supportingImage2Alt, setSupportingImage2Alt] = useState(
+    post?.supporting_image_2_alt ?? "",
+  );
   const [categoryId, setCategoryId] = useState(post?.category_id ?? "");
   const [seoTitle, setSeoTitle] = useState(post?.seo_title ?? "");
   const [seoDescription, setSeoDescription] = useState(post?.seo_description ?? "");
@@ -120,8 +135,9 @@ export function PostForm({
       active: link.active,
     })),
   );
-  const [uploading, setUploading] = useState(false);
+  const [uploadingSlot, setUploadingSlot] = useState<ImageSlot | null>(null);
   const [uploadError, setUploadError] = useState("");
+  const [uploadErrorSlot, setUploadErrorSlot] = useState<ImageSlot | null>(null);
   const [dirty, setDirty] = useState(false);
   const [autosaveState, setAutosaveState] = useState<"idle" | "saving" | "saved" | "failed">(
     post ? "saved" : "idle",
@@ -130,6 +146,8 @@ export function PostForm({
     post ? `Saved ${formatDate(post.updated_at, "short")}` : "Autosave begins after the first draft save",
   );
   const fileInput = useRef<HTMLInputElement>(null);
+  const supportingImage1Input = useRef<HTMLInputElement>(null);
+  const supportingImage2Input = useRef<HTMLInputElement>(null);
 
   const markDirty = () => {
     setDirty(true);
@@ -150,6 +168,10 @@ export function PostForm({
         content,
         cover_image_url: coverUrl,
         cover_image_alt: coverAlt,
+        supporting_image_1_url: supportingImage1Url,
+        supporting_image_1_alt: supportingImage1Alt,
+        supporting_image_2_url: supportingImage2Url,
+        supporting_image_2_alt: supportingImage2Alt,
         category_id: categoryId,
         seo_title: seoTitle,
         seo_description: seoDescription,
@@ -175,6 +197,10 @@ export function PostForm({
     content,
     coverUrl,
     coverAlt,
+    supportingImage1Url,
+    supportingImage1Alt,
+    supportingImage2Url,
+    supportingImage2Alt,
     categoryId,
     seoTitle,
     seoDescription,
@@ -190,8 +216,25 @@ export function PostForm({
       excerpt,
       coverUrl,
       coverAlt,
+      supportingImages: [
+        { url: supportingImage1Url, alt: supportingImage1Alt },
+        { url: supportingImage2Url, alt: supportingImage2Alt },
+      ],
     }),
-    [title, seoTitle, seoDescription, keyword, content, excerpt, coverUrl, coverAlt],
+    [
+      title,
+      seoTitle,
+      seoDescription,
+      keyword,
+      content,
+      excerpt,
+      coverUrl,
+      coverAlt,
+      supportingImage1Url,
+      supportingImage1Alt,
+      supportingImage2Url,
+      supportingImage2Alt,
+    ],
   );
   const seoScore = Math.round(
     (seoChecks.filter((check) => check.pass).length / seoChecks.length) * 100,
@@ -202,34 +245,45 @@ export function PostForm({
       <p className="mt-1.5 text-xs text-red-700">{state.errors[name][0]}</p>
     ) : null;
 
-  async function uploadCover(file?: File) {
+  async function uploadImage(file: File | undefined, slot: ImageSlot) {
     if (!file) return;
     if (!supabaseConfigured) {
       setUploadError("Connect Supabase before uploading. You can paste a public image URL for now.");
+      setUploadErrorSlot(slot);
       return;
     }
-    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+    const allowedTypes: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+    if (!allowedTypes[file.type] || file.size > 5 * 1024 * 1024) {
       setUploadError("Choose a JPG, PNG, or WebP image under 5 MB.");
+      setUploadErrorSlot(slot);
       return;
     }
 
-    setUploading(true);
+    setUploadingSlot(slot);
     setUploadError("");
+    setUploadErrorSlot(null);
     try {
       const supabase = createClient();
-      const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `covers/${crypto.randomUUID()}.${extension}`;
+      const folder = slot === "cover" ? "covers" : "story-gallery";
+      const path = `${folder}/${crypto.randomUUID()}.${allowedTypes[file.type]}`;
       const { error } = await supabase.storage
         .from("post-images")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
       const { data } = supabase.storage.from("post-images").getPublicUrl(path);
-      setCoverUrl(data.publicUrl);
+      if (slot === "cover") setCoverUrl(data.publicUrl);
+      if (slot === "supporting-1") setSupportingImage1Url(data.publicUrl);
+      if (slot === "supporting-2") setSupportingImage2Url(data.publicUrl);
       markDirty();
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Image upload failed.");
+      setUploadErrorSlot(slot);
     } finally {
-      setUploading(false);
+      setUploadingSlot(null);
     }
   }
 
@@ -610,7 +664,7 @@ export function PostForm({
                   className="grid size-full place-items-center p-5 text-center text-stone"
                 >
                   <span>
-                    {uploading ? (
+                    {uploadingSlot === "cover" ? (
                       <LoaderCircle size={24} className="mx-auto animate-spin" />
                     ) : (
                       <ImagePlus size={24} className="mx-auto text-terracotta" />
@@ -626,7 +680,10 @@ export function PostForm({
               type="file"
               accept="image/png,image/jpeg,image/webp"
               className="sr-only"
-              onChange={(event) => uploadCover(event.target.files?.[0])}
+              onChange={(event) => {
+                uploadImage(event.target.files?.[0], "cover");
+                event.currentTarget.value = "";
+              }}
             />
             <div className="mt-3">
               <Label htmlFor="cover_image_url" className="text-xs">Or paste an image URL</Label>
@@ -659,7 +716,66 @@ export function PostForm({
               />
               {fieldError("cover_image_alt")}
             </div>
-            {uploadError && <p className="mt-2 text-xs leading-5 text-red-700">{uploadError}</p>}
+            {uploadError && uploadErrorSlot === "cover" && (
+              <p className="mt-2 text-xs leading-5 text-red-700">{uploadError}</p>
+            )}
+          </section>
+
+          <section className="border border-line bg-white p-5 shadow-[0_12px_40px_rgba(16,38,29,.035)]">
+            <p className="eyebrow text-terracotta">Story gallery</p>
+            <h2 className="mt-2 font-display text-2xl font-medium">Two supporting images</h2>
+            <p className="mt-2 text-[10px] leading-5 text-stone">
+              These appear as a polished image pair below the article. Each image is optional.
+            </p>
+            <div className="mt-5 space-y-5">
+              <SupportingImageField
+                index={1}
+                url={supportingImage1Url}
+                alt={supportingImage1Alt}
+                inputRef={supportingImage1Input}
+                uploading={uploadingSlot === "supporting-1"}
+                onUpload={(file) => uploadImage(file, "supporting-1")}
+                onUrlChange={(value) => {
+                  setSupportingImage1Url(value);
+                  markDirty();
+                }}
+                onAltChange={(value) => {
+                  setSupportingImage1Alt(value);
+                  markDirty();
+                }}
+                onRemove={() => {
+                  setSupportingImage1Url("");
+                  markDirty();
+                }}
+                urlError={fieldError("supporting_image_1_url")}
+                altError={fieldError("supporting_image_1_alt")}
+              />
+              <SupportingImageField
+                index={2}
+                url={supportingImage2Url}
+                alt={supportingImage2Alt}
+                inputRef={supportingImage2Input}
+                uploading={uploadingSlot === "supporting-2"}
+                onUpload={(file) => uploadImage(file, "supporting-2")}
+                onUrlChange={(value) => {
+                  setSupportingImage2Url(value);
+                  markDirty();
+                }}
+                onAltChange={(value) => {
+                  setSupportingImage2Alt(value);
+                  markDirty();
+                }}
+                onRemove={() => {
+                  setSupportingImage2Url("");
+                  markDirty();
+                }}
+                urlError={fieldError("supporting_image_2_url")}
+                altError={fieldError("supporting_image_2_alt")}
+              />
+            </div>
+            {uploadError && uploadErrorSlot !== "cover" && (
+              <p className="mt-3 text-xs leading-5 text-red-700">{uploadError}</p>
+            )}
           </section>
 
           <SuggestedLinks posts={relatedPosts} />
@@ -671,6 +787,115 @@ export function PostForm({
         </aside>
       </div>
     </form>
+  );
+}
+
+function SupportingImageField({
+  index,
+  url,
+  alt,
+  inputRef,
+  uploading,
+  onUpload,
+  onUrlChange,
+  onAltChange,
+  onRemove,
+  urlError,
+  altError,
+}: {
+  index: 1 | 2;
+  url: string;
+  alt: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  uploading: boolean;
+  onUpload: (file?: File) => void;
+  onUrlChange: (value: string) => void;
+  onAltChange: (value: string) => void;
+  onRemove: () => void;
+  urlError: React.ReactNode;
+  altError: React.ReactNode;
+}) {
+  const urlField = `supporting_image_${index}_url`;
+  const altField = `supporting_image_${index}_alt`;
+
+  return (
+    <div className="border-t border-line pt-5 first:border-t-0 first:pt-0">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[.12em] text-stone">
+          Supporting image {index}
+        </p>
+        <span className="text-[9px] text-stone/70">Optional</span>
+      </div>
+      <div className="relative mt-3 aspect-[16/10] overflow-hidden border border-dashed border-line bg-cream">
+        {url ? (
+          <>
+            <UserCoverImage src={url} alt={`Supporting image ${index} preview`} />
+            <button
+              type="button"
+              onClick={onRemove}
+              className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-ink/80 text-white"
+              aria-label={`Remove supporting image ${index}`}
+            >
+              <X size={14} />
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="grid size-full place-items-center p-5 text-center text-stone disabled:opacity-60"
+          >
+            <span>
+              {uploading ? (
+                <LoaderCircle size={22} className="mx-auto animate-spin" />
+              ) : (
+                <ImagePlus size={22} className="mx-auto text-terracotta" />
+              )}
+              <span className="mt-2 block text-xs font-bold text-ink">
+                Upload image {index}
+              </span>
+              <span className="mt-1 block text-[10px]">JPG, PNG or WebP · 5 MB max</span>
+            </span>
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="sr-only"
+        onChange={(event) => {
+          onUpload(event.target.files?.[0]);
+          event.currentTarget.value = "";
+        }}
+      />
+      <div className="mt-3">
+        <Label htmlFor={urlField} className="text-xs">Or paste an image URL</Label>
+        <Input
+          id={urlField}
+          name={urlField}
+          value={url}
+          onChange={(event) => onUrlChange(event.target.value)}
+          placeholder="https://…"
+          className="text-xs"
+        />
+        {urlError}
+      </div>
+      <div className="mt-3">
+        <Label htmlFor={altField} className="text-xs">Image alt text</Label>
+        <Textarea
+          id={altField}
+          name={altField}
+          value={alt}
+          onChange={(event) => onAltChange(event.target.value)}
+          placeholder="Describe what the image shows"
+          maxLength={180}
+          className="min-h-20 text-xs"
+        />
+        {altError}
+      </div>
+    </div>
   );
 }
 
@@ -878,6 +1103,7 @@ function calculateSeo({
   excerpt,
   coverUrl,
   coverAlt,
+  supportingImages,
 }: {
   title: string;
   description: string;
@@ -886,11 +1112,17 @@ function calculateSeo({
   excerpt: string;
   coverUrl: string;
   coverAlt: string;
+  supportingImages: Array<{ url: string; alt: string }>;
 }) {
   const normalizedKeyword = keyword.trim().toLowerCase();
   const plainContent = stripHtml(content).toLowerCase();
   const imageTags = content.match(/<img\b[^>]*>/gi) ?? [];
-  const missingAlt = imageTags.filter((tag) => !/\balt=["'][^"']+["']/i.test(tag)).length;
+  const inlineMissingAlt = imageTags.filter((tag) => !/\balt=["'][^"']+["']/i.test(tag)).length;
+  const uploadedMissingAlt = [
+    { url: coverUrl, alt: coverAlt },
+    ...supportingImages,
+  ].filter((image) => image.url && image.alt.trim().length < 5).length;
+  const missingAlt = inlineMissingAlt + uploadedMissingAlt;
   return [
     {
       label: "Focused title",
@@ -914,8 +1146,8 @@ function calculateSeo({
     },
     {
       label: "Complete image alt text",
-      detail: missingAlt ? `${missingAlt} inline image${missingAlt === 1 ? "" : "s"} still need alt text.` : "Every current image has descriptive alt text.",
-      pass: missingAlt === 0 && (!coverUrl || coverAlt.trim().length >= 5),
+      detail: missingAlt ? `${missingAlt} image${missingAlt === 1 ? "" : "s"} still need alt text.` : "Every current image has descriptive alt text.",
+      pass: missingAlt === 0,
     },
     {
       label: "Reader-facing excerpt",

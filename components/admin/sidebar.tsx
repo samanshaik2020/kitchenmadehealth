@@ -7,6 +7,7 @@ import {
   BarChart3,
   BookOpen,
   ExternalLink,
+  FileCode2,
   FilePlus2,
   LayoutDashboard,
   LogOut,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/posts/new", label: "New story", icon: FilePlus2 },
+  { href: "/dashboard/html-pages", label: "HTML pages", icon: FileCode2 },
   { href: "/dashboard/taxonomy", label: "Categories & tags", icon: Tags },
   { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },

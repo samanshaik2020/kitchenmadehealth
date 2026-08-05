@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
+import { getPublishedHtmlPages } from "@/lib/html-pages";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
-  const [{ posts }, categories] = await Promise.all([
+  const [{ posts }, categories, htmlPages] = await Promise.all([
     getPublishedPosts({ pageSize: 1000 }),
     getCategories(),
+    getPublishedHtmlPages(),
   ]);
 
   return [
@@ -28,6 +30,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: post.updated_at,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    ...htmlPages.map((page) => ({
+      url: `${baseUrl}/pages/${page.slug}`,
+      lastModified: page.updated_at,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
   ];
 }
