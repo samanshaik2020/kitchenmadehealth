@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import { deletePost, togglePostStatus } from "@/app/(admin)/dashboard/actions";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import type { Post } from "@/lib/types";
@@ -13,7 +13,21 @@ export function PostRowActions({ post }: { post: Post }) {
   const nextStatus = post.status === "published" ? "draft" : "published";
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [deleting, startDelete] = useTransition();
+
+  async function copyPostLink() {
+    const url = new URL(`/blog/${post.slug}`, window.location.origin).toString();
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+
+    window.setTimeout(() => setCopyState("idle"), 1800);
+  }
 
   function confirmDelete() {
     setDeleteError("");
@@ -31,6 +45,16 @@ export function PostRowActions({ post }: { post: Post }) {
   return (
     <>
       <div className="flex items-center justify-end gap-1">
+        <button
+          type="button"
+          onClick={copyPostLink}
+          aria-label={`Copy link for ${post.title}`}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[.06em] text-stone hover:bg-cream hover:text-ink"
+          title="Copy blog link"
+        >
+          {copyState === "copied" ? <Check size={15} /> : <Copy size={15} />}
+          {copyState === "copied" ? "Copied" : copyState === "failed" ? "Try again" : "Copy link"}
+        </button>
         <form action={togglePostStatus.bind(null, post.id, nextStatus)}>
           <button
             type="submit"
