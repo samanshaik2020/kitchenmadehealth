@@ -69,6 +69,21 @@ export async function listHtmlImages(supabase: ImageClient): Promise<HtmlImage[]
   });
 }
 
+export async function deleteHtmlImage(supabase: ImageClient, path: string): Promise<void> {
+  const editorId = await getEditorId(supabase);
+  const [folder, filename, ...extra] = path.split("/");
+  if (folder !== editorId || extra.length || !/^[a-zA-Z0-9_-]+\.(jpg|png|webp|gif|avif)$/i.test(filename ?? "")) {
+    throw new Error("You can only delete images from your own library.");
+  }
+
+  const { data, error } = await supabase.storage.from(HTML_IMAGE_BUCKET).remove([path]);
+  if (error) throw error;
+  // Storage can return an empty result when RLS denies deletion. Keep the row visible.
+  if (!data?.length) {
+    throw new Error("Image was not deleted. Run the image deletion SQL in Supabase, then refresh images and try again.");
+  }
+}
+
 export function htmlImageErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : "Image storage could not be reached. Please try again.";
   if (message.toLowerCase().includes("bucket not found")) {

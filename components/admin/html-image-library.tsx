@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Check, Clipboard, ExternalLink, ImagePlus, LoaderCircle, RefreshCw } from "lucide-react";
+import { Check, Clipboard, ExternalLink, ImagePlus, LoaderCircle, RefreshCw, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { createClient } from "@/lib/supabase/client";
 import {
   HTML_IMAGE_TYPES,
+  deleteHtmlImage,
   htmlImageErrorMessage,
   listHtmlImages,
   uploadHtmlImage,
@@ -20,6 +21,7 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
   const [uploading, setUploading] = useState(false);
+  const [deletingPath, setDeletingPath] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [copiedPath, setCopiedPath] = useState("");
@@ -36,8 +38,10 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
   }, [supabaseConfigured]);
 
   async function refreshImages() {
+    if (loading || uploading || deletingPath) return;
     setLoading(true);
     setError("");
+    setNotice("");
     try {
       setImages(await listHtmlImages(createClient()));
     } catch (error) {
@@ -49,7 +53,7 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!file || uploading || !supabaseConfigured) return;
+    if (!file || loading || uploading || deletingPath || !supabaseConfigured) return;
     setUploading(true);
     setError("");
     setNotice("");
@@ -63,6 +67,24 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
       setError(htmlImageErrorMessage(error));
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function deleteImage(image: HtmlImage) {
+    if (!supabaseConfigured || loading || uploading || deletingPath) return;
+    if (!window.confirm(`Delete "${image.name}" permanently? Pages using this image link may show a broken image.`)) return;
+    setDeletingPath(image.path);
+    setError("");
+    setNotice("");
+    try {
+      await deleteHtmlImage(createClient(), image.path);
+      setImages((current) => current.filter((item) => item.path !== image.path));
+      setCopiedPath((current) => current === image.path ? "" : current);
+      setNotice("Image deleted from storage and your library.");
+    } catch (error) {
+      setError(htmlImageErrorMessage(error));
+    } finally {
+      setDeletingPath("");
     }
   }
 
@@ -90,7 +112,7 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
         <button
           type="button"
           onClick={refreshImages}
-          disabled={!supabaseConfigured || loading || uploading}
+          disabled={!supabaseConfigured || loading || uploading || !!deletingPath}
           aria-label="Refresh images"
           title="Refresh images"
           className="grid size-10 shrink-0 place-items-center rounded-full border border-line text-stone hover:border-ink hover:text-ink disabled:opacity-50"
@@ -107,7 +129,7 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
             id="html-image-file"
             type="file"
             accept={Object.keys(HTML_IMAGE_TYPES).join(",")}
-            disabled={!supabaseConfigured || uploading}
+            disabled={!supabaseConfigured || uploading || !!deletingPath}
             onChange={(event) => {
               const selected = event.target.files?.[0] ?? null;
               const validationError = selected ? validateHtmlImage(selected) : null;
@@ -127,7 +149,7 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
         )}
         <button
           type="submit"
-          disabled={!supabaseConfigured || !file || loading || uploading}
+          disabled={!supabaseConfigured || !file || loading || uploading || !!deletingPath}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-terracotta px-5 text-[10px] font-bold uppercase tracking-[.1em] text-white hover:bg-terracotta-dark disabled:opacity-50"
         >
           {uploading ? <LoaderCircle size={15} className="animate-spin" /> : <ImagePlus size={15} />}
@@ -161,6 +183,16 @@ export function HtmlImageLibrary({ supabaseConfigured }: { supabaseConfigured: b
                     <a href={image.publicUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 text-[10px] font-bold text-stone hover:text-ink">
                       Open image <ExternalLink size={13} />
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => deleteImage(image)}
+                      disabled={!supabaseConfigured || loading || uploading || !!deletingPath}
+                      aria-label={`Delete image ${image.name}`}
+                      className="inline-flex min-h-9 items-center gap-2 rounded-full border border-red-200 px-4 text-[10px] font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {deletingPath === image.path ? <LoaderCircle size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                      {deletingPath === image.path ? "Deleting…" : "Delete image"}
+                    </button>
                   </div>
                 </div>
               </article>

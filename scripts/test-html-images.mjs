@@ -10,7 +10,7 @@ const { outputText } = ts.transpileModule(source, {
 });
 const imageHelpers = {};
 new Function("exports", outputText)(imageHelpers);
-const { uploadHtmlImage, listHtmlImages, validateHtmlImage, htmlImageErrorMessage, MAX_HTML_IMAGE_BYTES } = imageHelpers;
+const { uploadHtmlImage, listHtmlImages, deleteHtmlImage, validateHtmlImage, htmlImageErrorMessage, MAX_HTML_IMAGE_BYTES } = imageHelpers;
 
 const editorId = "730cb6cc-85be-4a68-9b1f-344a75520c79";
 function storageClient(files = [], options = {}) {
@@ -33,6 +33,17 @@ function storageClient(files = [], options = {}) {
           async list(folder, listOptions) {
             calls.push({ operation: "list", folder, options: listOptions });
             return { data: files.slice(0, listOptions.limit), error: options.failure ?? null };
+          },
+          async remove(paths) {
+            calls.push({ operation: "remove", paths });
+            if (options.failure) return { data: null, error: options.failure };
+            if (options.deleteDenied) return { data: [], error: null };
+            const removed = [];
+            for (const path of paths) {
+              const index = files.findIndex((file) => `${editorId}/${file.name}` === path);
+              if (index !== -1) removed.push({ ...files.splice(index, 1)[0], name: path });
+            }
+            return { data: removed, error: null };
           },
           getPublicUrl(path) {
             return { data: { publicUrl: `https://storage.example/storage/v1/object/public/${bucket}/${path}` } };
@@ -88,11 +99,39 @@ test("a new library session retrieves uploaded links and ignores folders", async
   assert.deepEqual(reopened.calls[0].options.sortBy, { column: "created_at", order: "desc" });
 });
 
-test("signed-out sessions cannot upload or list images", async () => {
+test("signed-out sessions cannot upload, list, or delete images", async () => {
   const client = storageClient([], { signedOut: true });
   await assert.rejects(listHtmlImages(client), /sign in again/);
   await assert.rejects(uploadHtmlImage(client, new File(["image"], "photo.jpg", { type: "image/jpeg" })), /sign in again/);
+  await assert.rejects(deleteHtmlImage(client, `${editorId}/photo.jpg`), /sign in again/);
   assert.equal(client.calls.length, 0);
+});
+
+test("deleting an uploaded image removes only that file from future library sessions", async () => {
+  const files = [];
+  const client = storageClient(files);
+  const deleted = await uploadHtmlImage(client, new File(["image"], "first.png", { type: "image/png" }));
+  const kept = await uploadHtmlImage(client, new File(["image"], "second.png", { type: "image/png" }));
+  await deleteHtmlImage(client, deleted.path);
+  const listed = await listHtmlImages(storageClient(files));
+  assert.deepEqual(listed.map((image) => image.publicUrl), [kept.publicUrl]);
+  assert.deepEqual(client.calls.find((call) => call.operation === "remove").paths, [deleted.path]);
+});
+
+test("another editor's image, folder paths, and traversal are rejected before deletion", async () => {
+  const client = storageClient();
+  for (const path of ["another-editor/photo.png", `${editorId}/../photo.png`, `${editorId}/folder/photo.png`, `${editorId}/`, `${editorId}/..`, `${editorId}/photo\\other.png`]) {
+    await assert.rejects(deleteHtmlImage(client, path), /own library/);
+  }
+  assert.equal(client.calls.length, 0);
+});
+
+test("denied and failed deletions preserve the image and do not report success", async () => {
+  const files = [];
+  const uploaded = await uploadHtmlImage(storageClient(files), new File(["image"], "photo.png", { type: "image/png" }));
+  await assert.rejects(deleteHtmlImage(storageClient(files, { deleteDenied: true }), uploaded.path), /image deletion SQL/);
+  await assert.rejects(deleteHtmlImage(storageClient(files, { failure: new Error("Storage unavailable") }), uploaded.path), /Storage unavailable/);
+  assert.equal((await listHtmlImages(storageClient(files)))[0].publicUrl, uploaded.publicUrl);
 });
 
 test("storage failures produce setup guidance rather than a false success URL", async () => {
