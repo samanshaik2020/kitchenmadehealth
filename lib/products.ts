@@ -1,4 +1,6 @@
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/public-cache";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 
@@ -8,7 +10,7 @@ const PRODUCT_SELECT =
 export async function getPublishedProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured()) return [];
 
-  const supabase = await createClient();
+  const supabase = createPublicClient(PUBLIC_PRODUCTS_CACHE_TAG);
   const { data, error } = await supabase
     .from("products")
     .select(PRODUCT_SELECT)

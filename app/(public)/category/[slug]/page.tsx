@@ -8,6 +8,12 @@ import { getCategoryBySlug, getPublishedPosts } from "@/lib/posts";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
+
 const categoryArt: Record<string, string> = {
   "diabetes-blood-sugar":
     "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1800&q=88",
@@ -31,9 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const [category, { posts }] = await Promise.all([
+    getCategoryBySlug(slug),
+    getPublishedPosts({ category: slug, pageSize: 24 }),
+  ]);
   if (!category) notFound();
-  const { posts } = await getPublishedPosts({ category: slug, pageSize: 24 });
   const heroImage = categoryArt[slug] ?? "/images/kitchen-made-health-hero.webp";
 
   return (

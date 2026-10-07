@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
 
 export async function GET(request: Request) {
   const expected = process.env.CRON_SECRET;
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  revalidateTag(PUBLIC_POSTS_CACHE_TAG, { expire: 0 });
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath("/dashboard");

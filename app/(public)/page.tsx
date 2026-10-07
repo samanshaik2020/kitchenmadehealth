@@ -10,7 +10,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
-import { IntroExperience } from "@/components/site/intro-experience";
 import { Newsletter } from "@/components/site/newsletter";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
@@ -56,7 +55,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <IntroExperience />
       <section className="grain relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-ink text-white">
         <Image
           src="/images/kitchen-made-health-hero.webp"

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import {
   logActivity,
 } from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
 import type {
   ActionState,
   CommentStatus,
@@ -268,6 +269,7 @@ async function syncPostRelations(
 }
 
 function revalidateEditorial(slug?: string) {
+  updateTag(PUBLIC_POSTS_CACHE_TAG);
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath("/dashboard");
@@ -591,6 +593,7 @@ function taxonomyError(error: unknown): ActionState {
 }
 
 function revalidateTaxonomy() {
+  updateTag(PUBLIC_POSTS_CACHE_TAG);
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath("/dashboard");
@@ -824,6 +827,7 @@ export async function toggleAffiliate(id: string, active: boolean) {
     .eq("id", id);
   if (error) throw new Error(error.message);
   await logActivity(supabase, user.id, active ? "affiliate_enabled" : "affiliate_disabled", "affiliate", id);
+  updateTag(PUBLIC_POSTS_CACHE_TAG);
   revalidatePath("/dashboard/affiliates");
 }
 
@@ -833,5 +837,6 @@ export async function deleteAffiliate(id: string) {
   const { error } = await supabase.from("affiliate_links").delete().eq("id", id);
   if (error) throw new Error(error.message);
   await logActivity(supabase, user.id, "deleted", "affiliate", id);
+  updateTag(PUBLIC_POSTS_CACHE_TAG);
   revalidatePath("/dashboard/affiliates");
 }

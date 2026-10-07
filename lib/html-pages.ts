@@ -1,4 +1,6 @@
+import { PUBLIC_HTML_PAGES_CACHE_TAG } from "@/lib/public-cache";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { HtmlPage } from "@/lib/types";
 
@@ -28,7 +30,7 @@ export async function getPublishedHtmlPageBySlug(
 ): Promise<Pick<HtmlPage, "title" | "html_content" | "updated_at"> | null> {
   if (!isSupabaseConfigured()) return null;
 
-  const supabase = await createClient();
+  const supabase = createPublicClient(PUBLIC_HTML_PAGES_CACHE_TAG);
   const { data, error } = await supabase
     .from("html_pages")
     .select("title,html_content,updated_at")
@@ -46,7 +48,7 @@ export async function getPublishedHtmlPages(): Promise<
 > {
   if (!isSupabaseConfigured()) return [];
 
-  const supabase = await createClient();
+  const supabase = createPublicClient(PUBLIC_HTML_PAGES_CACHE_TAG);
   const { data, error } = await supabase
     .from("html_pages")
     .select("slug,updated_at")

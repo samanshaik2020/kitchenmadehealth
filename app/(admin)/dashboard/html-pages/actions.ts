@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import {
   databaseUpgradeMessage,
@@ -8,6 +8,7 @@ import {
   logActivity,
 } from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { PUBLIC_HTML_PAGES_CACHE_TAG } from "@/lib/public-cache";
 import type { ActionState, HtmlPageStatus } from "@/lib/types";
 import { slugify } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const htmlPageFields = z.object({
 });
 
 function revalidateHtmlPages(slug?: string) {
+  updateTag(PUBLIC_HTML_PAGES_CACHE_TAG);
   revalidatePath("/dashboard/html-pages");
   revalidatePath("/sitemap.xml");
   if (slug) revalidatePath(`/pages/${slug}`);

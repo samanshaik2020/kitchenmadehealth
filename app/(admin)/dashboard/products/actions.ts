@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
@@ -9,6 +9,7 @@ import {
   logActivity,
 } from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/public-cache";
 import type { ActionState } from "@/lib/types";
 
 const webUrl = z
@@ -52,6 +53,7 @@ function parseProduct(formData: FormData) {
 }
 
 function revalidateProducts() {
+  updateTag(PUBLIC_PRODUCTS_CACHE_TAG);
   revalidatePath("/products");
   revalidatePath("/dashboard/products");
   revalidatePath("/sitemap.xml");

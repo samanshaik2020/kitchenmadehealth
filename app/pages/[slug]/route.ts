@@ -1,6 +1,10 @@
 import { getPublishedHtmlPageBySlug } from "@/lib/html-pages";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 const HTML_SANDBOX_POLICY = [
   "sandbox allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-scripts",

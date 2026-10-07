@@ -1,5 +1,9 @@
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { demoCategories, demoPosts } from "@/lib/demo-data";
+import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, Post } from "@/lib/types";
 
@@ -58,10 +62,10 @@ function getDemoPublishedPosts(options?: {
   };
 }
 
-export async function getCategories(): Promise<Category[]> {
+export const getCategories = cache(async (): Promise<Category[]> => {
   if (!isSupabaseConfigured()) return demoCategories;
 
-  const supabase = await createClient();
+  const supabase = createPublicClient(PUBLIC_POSTS_CACHE_TAG);
   const { data, error } = await supabase.from("categories").select("*").order("name");
   if (error) {
     return demoCategories;
@@ -70,7 +74,7 @@ export async function getCategories(): Promise<Category[]> {
   return Array.from(
     new Map(presented.map((category) => [category.slug, category])).values(),
   );
-}
+});
 
 export async function getPublishedPosts(options?: {
   category?: string;
@@ -84,15 +88,29 @@ export async function getPublishedPosts(options?: {
     return getDemoPublishedPosts(options);
   }
 
-  const supabase = await createClient();
+  try {
+    return await getCachedPublishedPosts(options?.category ?? null, page, pageSize);
+  } catch {
+    return getDemoPublishedPosts(options);
+  }
+}
+
+// PostgREST returns HTTP 206 for partial lists, which Next's fetch cache skips.
+// Cache the decoded result so each category and pagination combination is reused.
+const getCachedPublishedPosts = unstable_cache(async (
+  categorySlug: string | null,
+  page: number,
+  pageSize: number,
+): Promise<{ posts: Post[]; count: number }> => {
+  const supabase = createPublicClient(PUBLIC_POSTS_CACHE_TAG);
   let categoryId: string | undefined;
-  if (options?.category) {
+  if (categorySlug) {
     let { data: category, error: categoryError } = await supabase
       .from("categories")
       .select("id")
-      .eq("slug", options.category)
+      .eq("slug", categorySlug)
       .maybeSingle();
-    const legacySlug = NEW_TO_LEGACY_CATEGORY[options.category];
+    const legacySlug = NEW_TO_LEGACY_CATEGORY[categorySlug];
     if (!category && !categoryError && legacySlug) {
       const legacyResult = await supabase
         .from("categories")
@@ -102,7 +120,7 @@ export async function getPublishedPosts(options?: {
       category = legacyResult.data;
       categoryError = legacyResult.error;
     }
-    if (categoryError) return getDemoPublishedPosts(options);
+    if (categoryError) throw categoryError;
     if (!category) return { posts: [], count: 0 };
     categoryId = category.id;
   }
@@ -119,21 +137,19 @@ export async function getPublishedPosts(options?: {
   }
 
   const { data, error, count } = await query;
-  if (error) {
-    return getDemoPublishedPosts(options);
-  }
+  if (error) throw error;
   return {
     posts: ((data ?? []) as unknown as Post[]).map(presentPost),
     count: count ?? 0,
   };
-}
+}, ["published-posts"], { revalidate: 300, tags: [PUBLIC_POSTS_CACHE_TAG] });
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
+export const getPostBySlug = cache(async (slug: string): Promise<Post | null> => {
   if (!isSupabaseConfigured()) {
     return demoPosts.find((post) => post.slug === slug) ?? null;
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicClient(PUBLIC_POSTS_CACHE_TAG);
   const { data, error } = await supabase
     .from("posts")
     .select(POST_SELECT)
@@ -157,7 +173,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     ...presentPost(data as unknown as Post),
     affiliate_links: affiliateLinks ?? [],
   };
-}
+});
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const categories = await getCategories();

@@ -2,19 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Leaf, ShoppingBag } from "lucide-react";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { CategoryChip } from "@/components/blog/category-chip";
 import { PostCard } from "@/components/blog/post-card";
 import { ShareButton } from "@/components/blog/share-button";
 import { PostViewTracker } from "@/components/blog/post-view-tracker";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
-import { demoPosts } from "@/lib/demo-data";
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts";
 import { formatDate, readingTime } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+export const revalidate = 300;
+
 export async function generateStaticParams() {
-  return demoPosts.map((post) => ({ slug: post.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -40,11 +42,6 @@ export default async function PostPage({ params }: PageProps) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const { posts: related } = await getPublishedPosts({
-    category: post.category?.slug,
-    pageSize: 4,
-  });
-  const relatedPosts = related.filter((item) => item.id !== post.id).slice(0, 3);
   const supportingImages = [
     { url: post.supporting_image_1_url, alt: post.supporting_image_1_alt },
     { url: post.supporting_image_2_url, alt: post.supporting_image_2_alt },
@@ -183,31 +180,50 @@ export default async function PostPage({ params }: PageProps) {
         </div>
       </div>
 
-      {relatedPosts.length > 0 && (
-        <section className="bg-cream">
-          <div className="container-wide py-16 md:py-24">
-            <div className="mb-12 flex items-end justify-between border-b border-line pb-7">
-              <div>
-                <p className="eyebrow text-terracotta">Keep reading</p>
-                <h2 className="mt-3 font-display text-5xl font-medium tracking-[-.05em]">
-                  More from this shelf
-                </h2>
-              </div>
-              <Link
-                href="/blog"
-                className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] sm:inline-flex"
-              >
-                All stories <ArrowUpRight size={14} />
-              </Link>
-            </div>
-            <div className="grid gap-x-8 gap-y-12 md:grid-cols-3">
-              {relatedPosts.map((item, index) => (
-                <PostCard key={item.id} post={item} index={index + 1} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <Suspense fallback={null}>
+        <RelatedPosts postId={post.id} categorySlug={post.category?.slug} />
+      </Suspense>
     </article>
+  );
+}
+
+async function RelatedPosts({
+  postId,
+  categorySlug,
+}: {
+  postId: string;
+  categorySlug?: string;
+}) {
+  const { posts: related } = await getPublishedPosts({
+    category: categorySlug,
+    pageSize: 4,
+  });
+  const relatedPosts = related.filter((item) => item.id !== postId).slice(0, 3);
+  if (!relatedPosts.length) return null;
+
+  return (
+    <section className="bg-cream">
+      <div className="container-wide py-16 md:py-24">
+        <div className="mb-12 flex items-end justify-between border-b border-line pb-7">
+          <div>
+            <p className="eyebrow text-terracotta">Keep reading</p>
+            <h2 className="mt-3 font-display text-5xl font-medium tracking-[-.05em]">
+              More from this shelf
+            </h2>
+          </div>
+          <Link
+            href="/blog"
+            className="hidden items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] sm:inline-flex"
+          >
+            All stories <ArrowUpRight size={14} />
+          </Link>
+        </div>
+        <div className="grid gap-x-8 gap-y-12 md:grid-cols-3">
+          {relatedPosts.map((item, index) => (
+            <PostCard key={item.id} post={item} index={index + 1} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
