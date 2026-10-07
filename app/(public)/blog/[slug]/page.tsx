@@ -16,7 +16,8 @@ type PageProps = { params: Promise<{ slug: string }> };
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  return [];
+  const { posts } = await getPublishedPosts({ pageSize: 1000 });
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

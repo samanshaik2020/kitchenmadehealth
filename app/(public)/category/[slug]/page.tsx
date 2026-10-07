@@ -4,14 +4,15 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/blog/post-card";
-import { getCategoryBySlug, getPublishedPosts } from "@/lib/posts";
+import { getCategories, getCategoryBySlug, getPublishedPosts } from "@/lib/posts";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
 export const revalidate = 300;
 
-export function generateStaticParams() {
-  return [];
+export async function generateStaticParams() {
+  const categories = await getCategories();
+  return categories.map((category) => ({ slug: category.slug }));
 }
 
 const categoryArt: Record<string, string> = {
