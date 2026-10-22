@@ -76,6 +76,32 @@ export const getCategories = cache(async (): Promise<Category[]> => {
   );
 });
 
+export type CategoryCover = { cover_image_url: string | null; cover_image_alt?: string | null };
+
+export async function getLatestCategoryCovers(): Promise<Record<string, CategoryCover>> {
+  if (!isSupabaseConfigured()) {
+    const covers: Record<string, CategoryCover> = {};
+    const sorted = [...demoPosts].filter((post) => post.status === "published")
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+    for (const post of sorted) {
+      if (post.category_id && !covers[post.category_id]) covers[post.category_id] = post;
+    }
+    return covers;
+  }
+  // Limit each embedded category's posts, rather than limiting the overall feed.
+  const { data, error } = await createPublicClient(PUBLIC_POSTS_CACHE_TAG)
+    .from("categories")
+    .select("id,posts(cover_image_url,cover_image_alt)")
+    .eq("posts.status", "published")
+    .order("published_at", { referencedTable: "posts", ascending: false, nullsFirst: false })
+    .order("created_at", { referencedTable: "posts", ascending: false })
+    .limit(1, { referencedTable: "posts" });
+  if (error) return {};
+  return Object.fromEntries((data ?? []).flatMap((category) =>
+    category.posts[0] ? [[category.id, category.posts[0]]] : [],
+  ));
+}
+
 export async function getPublishedPosts(options?: {
   category?: string;
   page?: number;

@@ -11,8 +11,10 @@ import {
 } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
 import { Newsletter } from "@/components/site/newsletter";
+import { YouTubeSection } from "@/components/site/youtube-section";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
-import { getCategories, getPublishedPosts } from "@/lib/posts";
+import { getCategories, getLatestCategoryCovers, getPublishedPosts } from "@/lib/posts";
+import { getYouTubeVideos } from "@/lib/youtube-data";
 import { formatDate, readingTime } from "@/lib/utils";
 
 export const revalidate = 300;
@@ -47,9 +49,11 @@ const rituals = [
 ];
 
 export default async function HomePage() {
-  const [{ posts }, categories] = await Promise.all([
+  const [{ posts }, categories, categoryCovers, videos] = await Promise.all([
     getPublishedPosts({ pageSize: 6 }),
     getCategories(),
+    getLatestCategoryCovers(),
+    getYouTubeVideos(),
   ]);
   const [featured, ...latest] = posts;
 
@@ -251,11 +255,9 @@ export default async function HomePage() {
                   index === 0 || index === 3 ? "lg:row-span-2" : ""
                 }`}
               >
-                <Image
-                  src={categoryImages[category.slug] ?? "/images/kitchen-made-health-hero.webp"}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
+                <UserCoverImage
+                  src={categoryCovers[category.id]?.cover_image_url ?? categoryImages[category.slug] ?? "/images/kitchen-made-health-hero.webp"}
+                  alt={categoryCovers[category.id]?.cover_image_alt ?? ""}
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/5" />
@@ -350,6 +352,8 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      <YouTubeSection videos={videos} />
 
       <section className="bg-terracotta px-6 py-20 text-cream md:py-28">
         <div className="mx-auto max-w-5xl text-center">

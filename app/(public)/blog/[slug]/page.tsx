@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Leaf, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, FileText, Leaf, ShoppingBag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CategoryChip } from "@/components/blog/category-chip";
@@ -9,6 +9,10 @@ import { ShareButton } from "@/components/blog/share-button";
 import { PostViewTracker } from "@/components/blog/post-view-tracker";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts";
+import { POST_PDF_BUCKET } from "@/lib/post-pdfs";
+import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
+import { createPublicClient } from "@/lib/supabase/public";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { formatDate, readingTime } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -42,6 +46,9 @@ export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
+  const pdfUrl = post.pdf_attachment && isSupabaseConfigured()
+    ? createPublicClient(PUBLIC_POSTS_CACHE_TAG).storage.from(POST_PDF_BUCKET).getPublicUrl(post.pdf_attachment.path).data.publicUrl
+    : null;
 
   const supportingImages = [
     { url: post.supporting_image_1_url, alt: post.supporting_image_1_alt },
@@ -128,6 +135,15 @@ export default async function PostPage({ params }: PageProps) {
                   />
                 </figure>
               ))}
+            </section>
+          )}
+          {pdfUrl && post.pdf_attachment && (
+            <section aria-label="PDF attachment" className="mt-12 flex flex-col gap-5 rounded-2xl border border-line bg-cream p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <FileText size={26} className="shrink-0 text-terracotta" />
+                <div className="min-w-0"><p className="eyebrow text-terracotta">Take it with you</p><h2 className="mt-2 break-words font-display text-2xl font-medium">{post.pdf_attachment.name}</h2><p className="mt-1 text-xs text-stone">PDF · {(post.pdf_attachment.size / 1_000_000).toFixed(2)} MB</p></div>
+              </div>
+              <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink px-5 text-xs font-bold text-white">Open PDF <ExternalLink size={14} /><span className="sr-only">(opens in a new tab)</span></a>
             </section>
           )}
           {post.affiliate_links && post.affiliate_links.length > 0 && (

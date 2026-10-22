@@ -1,3 +1,5 @@
+import type { PostPdfAttachment } from "@/lib/post-pdfs";
+
 export type Category = {
   id: string;
   name: string;
@@ -112,6 +114,7 @@ export type Post = {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  pdf_attachment?: PostPdfAttachment | null;
   supporting_image_1_url?: string | null;
   supporting_image_1_alt?: string | null;
   supporting_image_2_url?: string | null;
@@ -136,6 +139,7 @@ export type PostInput = {
   excerpt: string;
   content: string;
   cover_image_url: string;
+  pdf_attachment: PostPdfAttachment | null;
   supporting_image_1_url: string;
   supporting_image_1_alt: string;
   supporting_image_2_url: string;

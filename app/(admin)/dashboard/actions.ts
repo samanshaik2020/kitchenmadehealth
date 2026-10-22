@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
+import { PDF_SIZE_LIMIT, verifyPostPdf } from "@/lib/post-pdfs";
 import type {
   ActionState,
   CommentStatus,
@@ -30,6 +31,11 @@ const postFields = z.object({
     content: z.string().trim().min(12, "Add a little more content before saving."),
     cover_image_url: z.string().trim().url("Use a valid image URL.").or(z.literal("")),
     cover_image_alt: z.string().trim().max(180, "Alt text must be 180 characters or fewer."),
+    pdf_attachment: z.object({
+      path: z.string().regex(/^[0-9a-f-]{36}\/[a-zA-Z0-9_-]+\.pdf$/),
+      name: z.string().trim().min(1).max(180),
+      size: z.number().int().positive().lt(PDF_SIZE_LIMIT, "PDFs must be below 5 MB."),
+    }).nullable(),
     supporting_image_1_url: z.string().trim().url("Use a valid image URL.").or(z.literal("")),
     supporting_image_1_alt: z.string().trim().max(180, "Alt text must be 180 characters or fewer."),
     supporting_image_2_url: z.string().trim().url("Use a valid image URL.").or(z.literal("")),
@@ -83,6 +89,12 @@ const autosaveSchema = postFields
   .required({ title: true, slug: true, content: true });
 
 function parsePost(formData: FormData) {
+  let pdfAttachment: unknown = null;
+  try {
+    pdfAttachment = JSON.parse(String(formData.get("pdf_attachment") || "null"));
+  } catch {
+    pdfAttachment = "invalid";
+  }
   return postSchema.safeParse({
     title: formData.get("title"),
     slug: formData.get("slug") || slugify(String(formData.get("title") ?? "")),
@@ -90,6 +102,7 @@ function parsePost(formData: FormData) {
     content: formData.get("content"),
     cover_image_url: formData.get("cover_image_url"),
     cover_image_alt: formData.get("cover_image_alt"),
+    pdf_attachment: pdfAttachment,
     supporting_image_1_url: formData.get("supporting_image_1_url"),
     supporting_image_1_alt: formData.get("supporting_image_1_alt"),
     supporting_image_2_url: formData.get("supporting_image_2_url"),
@@ -161,6 +174,7 @@ function toDatabaseInput(input: PostInput, publishedAt?: string | null) {
     content: sanitizeContent(input.content),
     cover_image_url: input.cover_image_url || null,
     cover_image_alt: input.cover_image_alt || null,
+    pdf_attachment: input.pdf_attachment,
     supporting_image_1_url: input.supporting_image_1_url || null,
     supporting_image_1_alt: input.supporting_image_1_alt || null,
     supporting_image_2_url: input.supporting_image_2_url || null,
@@ -187,6 +201,7 @@ function revisionSnapshot(post: Record<string, unknown>) {
     "content",
     "cover_image_url",
     "cover_image_alt",
+    "pdf_attachment",
     "supporting_image_1_url",
     "supporting_image_1_alt",
     "supporting_image_2_url",
@@ -307,6 +322,7 @@ export async function createPost(
 
   try {
     const { supabase, user } = await getAuthenticatedClient();
+    parsed.data.pdf_attachment = await verifyPostPdf(supabase, user.id, parsed.data.pdf_attachment);
     const payload = {
       ...toDatabaseInput(parsed.data),
       author_id: user.id,
@@ -384,6 +400,7 @@ export async function updatePost(
       .single();
     if (currentError) throw currentError;
 
+    parsed.data.pdf_attachment = await verifyPostPdf(supabase, user.id, parsed.data.pdf_attachment);
     await saveRevision(
       supabase,
       user.id,
@@ -441,6 +458,9 @@ export async function autosavePost(
       return { success: false, message: "Published stories save when you choose Update." };
     }
 
+    if (parsed.data.pdf_attachment !== undefined) {
+      parsed.data.pdf_attachment = await verifyPostPdf(supabase, user.id, parsed.data.pdf_attachment);
+    }
     await saveRevision(supabase, user.id, id, current, "autosave");
     const update = {
       ...parsed.data,

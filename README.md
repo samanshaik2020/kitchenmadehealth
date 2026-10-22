@@ -15,6 +15,9 @@ Supabase, and Tiptap.
 - Tiptap rich-text editor, SEO controls, a cover, and two supporting image uploads
 - Sandboxed standalone HTML page publishing with stable `/pages/{slug}` URLs
 - HTML page image library with reusable public image URLs, copy-link and delete buttons
+- Homepage category images from the latest published post in each category
+- One PDF attachment per story, strictly below 5 MB
+- Six dashboard-managed YouTube URL slots with a 3-by-2 homepage thumbnail grid
 - Validated Server Actions for create, edit, publish, unpublish, and delete
 - RLS-protected database and Storage policies
 - Independent public product catalog with affiliate buttons and click tracking
@@ -39,9 +42,26 @@ and dashboard run in preview mode with sample content.
 5. Run [`supabase/migrations/20260805_story_images_and_html_pages.sql`](supabase/migrations/20260805_story_images_and_html_pages.sql).
 6. Run [`supabase/migrations/20261007_html_page_images.sql`](supabase/migrations/20261007_html_page_images.sql) to enable reusable image uploads in the HTML pages editor.
 7. Run [`supabase/migrations/20261007_html_page_image_delete.sql`](supabase/migrations/20261007_html_page_image_delete.sql) to enable deleting your uploaded library images.
-8. Copy `.env.example` to `.env.local` and add the project URL and anon key.
-9. Add an email/password editor in Supabase Authentication.
-10. Restart `npm run dev`, then sign in at `/login`.
+8. Run [`supabase/migrations/20261022_post_pdfs_and_youtube.sql`](supabase/migrations/20261022_post_pdfs_and_youtube.sql) for post PDFs and homepage YouTube links.
+9. Copy `.env.example` to `.env.local` and add the project URL and anon key.
+10. Add an email/password editor in Supabase Authentication.
+11. Restart `npm run dev`, then sign in at `/login`.
+
+In the story editor, use **PDF attachment** to upload or replace one PDF. Files
+must be strictly below 5,000,000 bytes; empty files and other formats are rejected.
+Save or update the story to show its **Open PDF** link below the article. Removing
+the attachment and saving hides the link. Detached files remain in Storage so
+older story revisions can restore them. PDFs use a public bucket, like story images.
+
+In **YouTube links** (`/dashboard/videos`), paste up to six YouTube video URLs,
+optionally add titles, and save. Standard watch, short, Shorts, live, and embed
+URLs are accepted. The homepage shows linked thumbnails in slot order, three
+columns on desktop, two on tablet, and one on mobile. It loads no video player.
+Empty slots stay hidden; clearing every slot hides the section.
+
+Category tiles automatically use each category's most recently published post
+cover. If that post has no cover, the tile uses its default image. Publishing,
+updating, moving, unpublishing, or deleting a post invalidates the homepage cache.
 
 In `/dashboard/html-pages`, use **Image library → Upload image & get link**.
 JPG, PNG, WebP, GIF, and AVIF images up to 5 MB receive public URLs that can be
@@ -63,6 +83,7 @@ npm run lint
 npm run typecheck
 npm run build
 node scripts/test-html-images.mjs
+node scripts/test-post-media.mjs
 ```
 
 ## Deployment
