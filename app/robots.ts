@@ -1,15 +1,15 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl, IS_PREVIEW } from "@/lib/site-config";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
   return {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-        disallow: ["/dashboard/", "/login"],
+        allow: IS_PREVIEW ? undefined : "/",
+        disallow: IS_PREVIEW ? "/" : ["/dashboard", "/login"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: absoluteUrl("/sitemap.xml"),
   };
 }

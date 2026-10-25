@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, Post } from "@/lib/types";
+import { normalizeSearchQuery, searchFilterWords } from "@/lib/article-search";
 
 const POST_SELECT = "*, category:categories(*)";
 
@@ -46,14 +47,17 @@ function presentPost(post: Post): Post {
 
 function getDemoPublishedPosts(options?: {
   category?: string;
+  q?: string;
   page?: number;
   pageSize?: number;
 }) {
   const page = Math.max(1, options?.page ?? 1);
   const pageSize = options?.pageSize ?? 9;
-  const filtered = options?.category
+  const categoryPosts = options?.category
     ? demoPosts.filter((post) => post.category?.slug === options.category)
     : demoPosts;
+  const words = searchFilterWords(normalizeSearchQuery(options?.q)).toLocaleLowerCase();
+  const filtered = options?.q ? categoryPosts.filter((post) => words && `${post.title} ${post.excerpt ?? ""}`.toLocaleLowerCase().includes(words)) : categoryPosts;
   const start = (page - 1) * pageSize;
 
   return {
@@ -104,6 +108,7 @@ export async function getLatestCategoryCovers(): Promise<Record<string, Category
 
 export async function getPublishedPosts(options?: {
   category?: string;
+  q?: string;
   page?: number;
   pageSize?: number;
 }): Promise<{ posts: Post[]; count: number }> {
@@ -115,7 +120,7 @@ export async function getPublishedPosts(options?: {
   }
 
   try {
-    return await getCachedPublishedPosts(options?.category ?? null, page, pageSize);
+    return await getCachedPublishedPosts(options?.category ?? null, page, pageSize, normalizeSearchQuery(options?.q));
   } catch {
     return getDemoPublishedPosts(options);
   }
@@ -127,6 +132,7 @@ const getCachedPublishedPosts = unstable_cache(async (
   categorySlug: string | null,
   page: number,
   pageSize: number,
+  searchQuery: string,
 ): Promise<{ posts: Post[]; count: number }> => {
   const supabase = createPublicClient(PUBLIC_POSTS_CACHE_TAG);
   let categoryId: string | undefined;
@@ -161,6 +167,11 @@ const getCachedPublishedPosts = unstable_cache(async (
   if (categoryId) {
     query = query.eq("category_id", categoryId);
   }
+  if (searchQuery) {
+    const words = searchFilterWords(searchQuery);
+    if (!words) return { posts: [], count: 0 };
+    query = query.or(`title.ilike.%${words}%,excerpt.ilike.%${words}%`);
+  }
 
   const { data, error, count } = await query;
   if (error) throw error;
@@ -168,7 +179,7 @@ const getCachedPublishedPosts = unstable_cache(async (
     posts: ((data ?? []) as unknown as Post[]).map(presentPost),
     count: count ?? 0,
   };
-}, ["published-posts"], { revalidate: 300, tags: [PUBLIC_POSTS_CACHE_TAG] });
+}, ["published-posts-search-v2"], { revalidate: 300, tags: [PUBLIC_POSTS_CACHE_TAG] });
 
 export const getPostBySlug = cache(async (slug: string): Promise<Post | null> => {
   if (!isSupabaseConfigured()) {

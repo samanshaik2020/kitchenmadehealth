@@ -19,6 +19,8 @@ import type {
   PostStatus,
 } from "@/lib/types";
 import { slugify } from "@/lib/utils";
+import { findPublishingIssues } from "@/lib/publishing-checks";
+import { actionErrorMessage } from "@/lib/action-errors";
 
 const postFields = z.object({
     title: z.string().trim().min(1, "Title is required.").max(150),
@@ -49,6 +51,11 @@ const postFields = z.object({
   });
 
 const postSchema = postFields.superRefine((value, context) => {
+    if (value.status === "published" || value.status === "scheduled") {
+      for (const message of findPublishingIssues(value.content, true)) {
+        context.addIssue({ code: "custom", path: ["content"], message });
+      }
+    }
     if (value.status !== "scheduled") return;
     const scheduled = new Date(value.published_at);
     if (!value.published_at || Number.isNaN(scheduled.valueOf())) {
@@ -287,6 +294,8 @@ function revalidateEditorial(slug?: string) {
   updateTag(PUBLIC_POSTS_CACHE_TAG);
   revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/analytics");
   if (slug) revalidatePath(`/blog/${slug}`);
@@ -356,7 +365,7 @@ export async function createPost(
       { title: parsed.data.title },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create the post.";
+    const message = actionErrorMessage(error, "Unable to create the post.");
     return { success: false, message: databaseUpgradeMessage(message) };
   }
 
@@ -429,7 +438,7 @@ export async function updatePost(
       { title: parsed.data.title },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to update the post.";
+    const message = actionErrorMessage(error, "Unable to update the post.");
     return { success: false, message: databaseUpgradeMessage(message) };
   }
 
@@ -506,6 +515,10 @@ export async function restoreRevision(postId: string, revisionId: string) {
 
   await saveRevision(supabase, user.id, postId, current, "restore");
   const snapshot = revision.snapshot as Record<string, unknown>;
+  if (snapshot.status === "published" || snapshot.status === "scheduled") {
+    const issues = findPublishingIssues(String(snapshot.content ?? ""), true);
+    if (issues.length) throw new Error(issues.join(" "));
+  }
   const { error: updateError } = await supabase
     .from("posts")
     .update(revisionSnapshot(snapshot))
@@ -522,6 +535,12 @@ export async function restoreRevision(postId: string, revisionId: string) {
 export async function togglePostStatus(id: string, nextStatus: PostStatus) {
   if (!isSupabaseConfigured()) return;
   const { supabase, user } = await getAuthenticatedClient();
+  if (nextStatus === "published" || nextStatus === "scheduled") {
+    const { data: current, error: readError } = await supabase.from("posts").select("content").eq("id", id).eq("author_id", user.id).single();
+    if (readError || !current) throw new Error("That story could not be read.");
+    const issues = findPublishingIssues(current.content, true);
+    if (issues.length) throw new Error(issues.join(" "));
+  }
   const { data: post, error } = await supabase
     .from("posts")
     .update({
@@ -566,6 +585,12 @@ export async function bulkUpdatePosts(
   const parsedIds = z.array(z.string().min(1)).min(1).max(100).parse(ids);
   if (!isSupabaseConfigured()) return { success: true };
   const { supabase, user } = await getAuthenticatedClient();
+  if (operation === "publish") {
+    const { data: selected, error: readError } = await supabase.from("posts").select("title,content").in("id", parsedIds).eq("author_id", user.id);
+    if (readError) throw new Error("The selected stories could not be read.");
+    const unfinished = selected?.find((post) => findPublishingIssues(post.content, true).length);
+    if (unfinished) throw new Error(`Finish sources and remove draft instructions in “${unfinished.title}” before publishing.`);
+  }
 
   if (operation === "delete") {
     const { error } = await supabase

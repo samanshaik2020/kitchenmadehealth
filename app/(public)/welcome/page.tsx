@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Welcome to Kitchen Made Health",
   description:
     "Meet Kitchen Made Health—a thoughtful guide to the tools, ingredients, and rituals behind a nourishing home.",
+  alternates: { canonical: "/welcome" },
 };
 
 const promises = [

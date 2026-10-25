@@ -6,12 +6,16 @@ import { getPublishedProducts } from "@/lib/products";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getPublishedProducts();
+  return {
   title: "Thoughtful Kitchen Products",
   description:
     "A considered collection of kitchen and everyday wellness products selected by Kitchen Made Health.",
   alternates: { canonical: "/products" },
-};
+  robots: products.length ? undefined : { index: false, follow: true },
+  };
+}
 
 export default async function ProductsPage() {
   const products = await getPublishedProducts();

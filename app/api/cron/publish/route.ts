@@ -30,6 +30,8 @@ export async function GET(request: Request) {
   revalidateTag(PUBLIC_POSTS_CACHE_TAG, { expire: 0 });
   revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
   revalidatePath("/dashboard");
   return NextResponse.json({ published: data ?? 0, checked_at: new Date().toISOString() });
 }

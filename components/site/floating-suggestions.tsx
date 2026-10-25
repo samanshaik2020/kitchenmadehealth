@@ -2,58 +2,68 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Calculator, Sparkles, X } from "lucide-react";
-import { useState } from "react";
+import { BookOpenText, Calculator, X } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+
+const storageKey = "kmh-suggestions-dismissed";
+const eventName = "kmh-suggestions-change";
+
+function subscribe(listener: () => void) {
+  window.addEventListener(eventName, listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener(eventName, listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function isDismissed() {
+  try { return sessionStorage.getItem(storageKey) === "1"; } catch { return false; }
+}
 
 export function FloatingSuggestions() {
   const pathname = usePathname();
-  const [dismissedPath, setDismissedPath] = useState<string | null>(null);
-  const isHome = pathname === "/";
-  const isArticle = pathname.startsWith("/blog/");
-  const visible = dismissedPath !== pathname;
+  const savedDismissal = useSyncExternalStore(subscribe, isDismissed, () => false);
+  const [dismissed, setDismissed] = useState(false);
+  if ((pathname !== "/" && !pathname.startsWith("/blog/")) || savedDismissal || dismissed) return null;
 
-  if ((!isHome && !isArticle) || !visible) return null;
+  function dismiss() {
+    setDismissed(true);
+    try { sessionStorage.setItem(storageKey, "1"); } catch { /* Local dismissal still works. */ }
+    window.dispatchEvent(new Event(eventName));
+  }
 
   return (
     <aside
-      className="floating-suggestions"
+      className="border-t border-line bg-cream"
       aria-label="Suggested places to explore"
     >
+      <div className="container-wide relative py-8 pr-12">
       <button
         type="button"
-        onClick={() => setDismissedPath(pathname)}
-        className="floating-suggestions-close"
+        onClick={dismiss}
+        className="absolute right-0 top-5 grid size-11 place-items-center rounded-full text-stone hover:bg-paper"
         aria-label="Dismiss suggestions"
       >
-        <X size={14} />
+        <X size={18} />
       </button>
 
-      <div className="flex items-center gap-2 pr-7">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-terracotta/12 text-terracotta">
-          <Sparkles size={14} />
-        </span>
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-[.16em] text-terracotta">
-            {isArticle ? "Your next healthy step" : "Start exploring"}
-          </p>
-          <p className="mt-0.5 font-display text-base font-medium text-ink">
-            {isArticle ? "Keep the good momentum." : "What feels useful today?"}
-          </p>
-        </div>
-      </div>
+      <p className="eyebrow text-terracotta">Keep exploring</p>
+      <p className="mt-3 font-display text-2xl text-ink">Find your next useful step.</p>
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Link href="/blog" className="floating-suggestion-link">
-          <BookOpenText size={15} />
-          Read blogs
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Link href="/blog" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/25 px-5 text-sm font-semibold">
+          <BookOpenText size={16} />
+          Read the journal
         </Link>
         <Link
           href="/health-calculators"
-          className="floating-suggestion-link floating-suggestion-link-primary"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-white"
         >
-          <Calculator size={15} />
-          Calculator
+          <Calculator size={16} />
+          Health calculators
         </Link>
+      </div>
       </div>
     </aside>
   );

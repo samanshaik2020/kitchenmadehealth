@@ -11,6 +11,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { PUBLIC_HTML_PAGES_CACHE_TAG } from "@/lib/public-cache";
 import type { ActionState, HtmlPageStatus } from "@/lib/types";
 import { slugify } from "@/lib/utils";
+import { findPublishingIssues } from "@/lib/publishing-checks";
+import { actionErrorMessage } from "@/lib/action-errors";
 
 const MAX_HTML_BYTES = 4 * 1024 * 1024;
 
@@ -83,6 +85,10 @@ export async function createHtmlPage(
   }
 
   const htmlContent = await file.text();
+  if (parsed.data.status === "published") {
+    const issues = findPublishingIssues(htmlContent);
+    if (issues.length) return { success: false, message: issues.join(" "), errors: { html_file: issues } };
+  }
   if (!/(?:<!doctype\s+html|<html(?:\s|>))/i.test(htmlContent)) {
     return {
       success: false,
@@ -127,7 +133,7 @@ export async function createHtmlPage(
       status: parsed.data.status,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to upload the HTML page.";
+    const message = actionErrorMessage(error, "Unable to upload the HTML page.");
     return { success: false, message: databaseUpgradeMessage(message) };
   }
 
@@ -172,7 +178,7 @@ export async function setHtmlPageStatus(
       message: parsed.data.status === "published" ? "HTML page published." : "HTML page moved to draft.",
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to update the HTML page.";
+    const message = actionErrorMessage(error, "Unable to update the HTML page.");
     return { success: false, message: databaseUpgradeMessage(message) };
   }
 }

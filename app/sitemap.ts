@@ -1,13 +1,19 @@
 import type { MetadataRoute } from "next";
 import { getPublishedHtmlPages } from "@/lib/html-pages";
 import { getCategories, getPublishedPosts } from "@/lib/posts";
+import { absoluteUrl } from "@/lib/site-config";
+import { policyPages } from "@/lib/policy-pages";
+import { getPublishedProducts } from "@/lib/products";
+
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
-  const [{ posts }, categories, htmlPages] = await Promise.all([
+  const baseUrl = absoluteUrl().replace(/\/$/, "");
+  const [{ posts }, categories, htmlPages, products] = await Promise.all([
     getPublishedPosts({ pageSize: 1000 }),
     getCategories(),
     getPublishedHtmlPages(),
+    getPublishedProducts(),
   ]);
 
   return [
@@ -19,7 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.9,
     },
-    { url: `${baseUrl}/products`, changeFrequency: "weekly", priority: 0.8 },
+    ...(products.length ? [{ url: `${baseUrl}/products`, changeFrequency: "weekly" as const, priority: 0.8 }] : []),
+    ...Object.keys(policyPages).map((slug) => ({ url: `${baseUrl}/${slug}`, changeFrequency: "monthly" as const, priority: 0.4 })),
     ...categories.map((category) => ({
       url: `${baseUrl}/category/${category.slug}`,
       changeFrequency: "weekly" as const,

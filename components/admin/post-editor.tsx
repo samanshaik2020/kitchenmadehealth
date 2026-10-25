@@ -10,6 +10,8 @@ import {
   Italic,
   List,
   ListOrdered,
+  Link2,
+  Unlink,
   Quote,
   Redo2,
   Undo2,
@@ -26,9 +28,12 @@ export function PostEditor({
   const editor = useEditor({
     extensions: [StarterKit, Image],
     content,
-    immediatelyRender: true,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
+        role: "textbox",
+        "aria-label": "Article content",
+        "aria-multiline": "true",
         class:
           "article-content min-h-[28rem] max-w-none px-5 py-6 outline-none sm:px-8",
       },
@@ -99,6 +104,13 @@ export function PostEditor({
           </button>
         ))}
         <span className="mx-1 h-5 w-px bg-line" />
+        <button type="button" title="Add or edit source link" aria-label="Add or edit source link" className="grid size-8 place-items-center rounded-lg text-stone hover:bg-white hover:text-ink" onClick={() => {
+          const url = window.prompt("Paste an HTTPS source URL", editor.getAttributes("link").href || "");
+          if (url === null) return;
+          if (!url.trim()) { editor.chain().focus().extendMarkRange("link").unsetLink().run(); return; }
+          try { const parsed = new URL(url); if (parsed.protocol !== "https:") return; editor.chain().focus().extendMarkRange("link").setLink({ href: parsed.href }).run(); } catch { /* Keep the current link if the new URL is invalid. */ }
+        }}><Link2 size={15} /></button>
+        <button type="button" title="Remove link" aria-label="Remove link" className="grid size-8 place-items-center rounded-lg text-stone hover:bg-white hover:text-ink" onClick={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}><Unlink size={15} /></button>
         <button
           type="button"
           title="Add image by URL"

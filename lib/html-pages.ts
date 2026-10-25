@@ -55,5 +55,7 @@ export async function getPublishedHtmlPages(): Promise<
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
-  return error ? [] : (data as Array<Pick<HtmlPage, "slug" | "updated_at">>);
+  const pages = error ? [] : (data as Array<Pick<HtmlPage, "slug" | "updated_at">>);
+  // The old quiz URL remains a permanent redirect, not an indexable duplicate.
+  return pages.filter((page) => page.slug !== "glucotrust-german-version");
 }

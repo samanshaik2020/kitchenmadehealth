@@ -81,6 +81,7 @@ are enforced through row-level security.
 ```bash
 npm run lint
 npm run typecheck
+npm run test:audit
 npm run build
 node scripts/test-html-images.mjs
 node scripts/test-post-media.mjs
@@ -89,5 +90,32 @@ node scripts/test-post-media.mjs
 ## Deployment
 
 Import the repository into Vercel, add the environment variables, and set
-`NEXT_PUBLIC_SITE_URL` to the production origin. Attach `kitchenmadehealth.com`
+`SITE_URL` to `https://www.kitchenmadehealth.com` for Production. The legacy
+`NEXT_PUBLIC_SITE_URL` is a fallback; production rejects localhost and non-HTTPS
+values so a development setting cannot enter canonical tags, sitemaps, or feeds.
+Redeploy after changing a production environment variable. Attach `kitchenmadehealth.com`
 and `www.kitchenmadehealth.com` in the Vercel domain settings.
+
+The journal supports title/excerpt search through `?q=`, combined with category
+filters and pagination. Search result pages are not indexed. Public article,
+category, and listing pages include canonical URLs. Post publication and edits
+refresh the sitemap and feed, with a timed refresh as a fallback.
+
+The main navigation and sitemap hide the product catalog while there are no
+active products. Supply `NEXT_PUBLIC_INSTAGRAM_URL` only when a real profile is
+ready; otherwise the social link stays hidden. Policy and contact pages live at
+`/privacy-policy`, `/terms`, `/medical-disclaimer`, `/editorial-policy`,
+`/affiliate-disclosure`, and `/contact`; their text is in `lib/policy-pages.ts`.
+Review that text when the site's data collection or editorial practices change.
+
+Publishing a health story requires a source link and no draft instructions.
+Drafts remain editable without source links. The editor toolbar includes link
+and unlink controls. These checks catch unfinished material; they do not verify
+clinical claims or establish that a reviewer has examined an article. The public
+byline links to the editorial desk policy and makes the current review status
+explicit. Add real reviewer details only after a specific qualified review.
+
+Standalone HTML retains its separate sandbox policy. The legacy German-version
+quiz URL redirects to `/pages/why-do-cravings-hit-at-3-pm`. Keep its replacement
+published before deploying the redirect. Working notes, content backups, and
+audit screenshots belong in the ignored `artifacts/` folder.

@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/blog/post-card";
 import { getCategories, getCategoryBySlug, getPublishedPosts } from "@/lib/posts";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -33,6 +34,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${category.name} Stories`,
     description: category.description,
+    alternates: { canonical: `/category/${category.slug}` },
+    openGraph: { title: `${category.name} Stories`, description: category.description, url: `/category/${category.slug}`, images: [DEFAULT_SOCIAL_IMAGE] },
   };
 }
 

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -18,6 +19,7 @@ import { getYouTubeVideos } from "@/lib/youtube-data";
 import { formatDate, readingTime } from "@/lib/utils";
 
 export const revalidate = 300;
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const categoryImages: Record<string, string> = {
   "diabetes-blood-sugar":
@@ -148,7 +150,7 @@ export default async function HomePage() {
             </div>
             <div>
               <h2 className="text-balance font-display text-5xl font-medium leading-[.98] tracking-[-.055em] md:text-7xl">
-                Health is not made in a lab.{" "}
+                Everyday wellbeing starts with small choices.{" "}
                 <span className="italic text-terracotta">It is made here.</span>
               </h2>
               <p className="mt-8 max-w-2xl text-base leading-8 text-stone">
@@ -282,13 +284,11 @@ export default async function HomePage() {
         <section className="overflow-hidden bg-clay">
           <div className="grid min-h-[46rem] lg:grid-cols-[1.08fr_.92fr]">
             <Link href={`/blog/${featured.slug}`} className="group relative min-h-[30rem] overflow-hidden">
-              {featured.cover_image_url && (
                 <UserCoverImage
-                  src={featured.cover_image_url}
-                  alt={featured.cover_image_alt ?? ""}
+                  src={featured.cover_image_url || "/images/kitchen-made-health-hero.webp"}
+                  alt={featured.cover_image_alt || "Fresh produce and kitchen objects"}
                   className="object-cover transition duration-700 group-hover:scale-[1.025]"
                 />
-              )}
               <div className="absolute left-6 top-6 grid size-24 place-items-center rounded-full border border-white/50 bg-white/80 text-center text-[9px] font-bold uppercase tracking-[.15em] text-ink shadow-xl backdrop-blur md:left-10 md:top-10">
                 Editor’s
                 <br />

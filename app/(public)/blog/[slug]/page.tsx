@@ -14,6 +14,7 @@ import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { formatDate, readingTime } from "@/lib/utils";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_NAME } from "@/lib/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -32,13 +33,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.seo_title ?? post.title,
     description: post.seo_description ?? post.excerpt,
+    alternates: { canonical: `/blog/${post.slug}` },
+    authors: [{ name: "Kitchen Made Health editorial desk", url: absoluteUrl("/editorial-policy#editorial-desk") }],
     openGraph: {
       type: "article",
       title: post.seo_title ?? post.title,
       description: post.seo_description ?? post.excerpt ?? undefined,
       publishedTime: post.published_at ?? undefined,
-      images: post.cover_image_url ? [{ url: post.cover_image_url }] : [],
+      modifiedTime: post.updated_at,
+      siteName: SITE_NAME,
+      url: absoluteUrl(`/blog/${post.slug}`),
+      images: [{ url: post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE), alt: post.cover_image_alt || post.title }],
     },
+    twitter: { card: "summary_large_image", title: post.seo_title ?? post.title, description: post.seo_description ?? post.excerpt ?? undefined, images: [post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE)] },
   };
 }
 
@@ -46,6 +53,27 @@ export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
+  const structuredData = [
+    {
+      "@context": "https://schema.org", "@type": "BlogPosting",
+      "@id": absoluteUrl(`/blog/${post.slug}#article`),
+      mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+      headline: post.title, description: post.seo_description || post.excerpt || undefined,
+      image: [post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE)],
+      datePublished: post.published_at || post.created_at, dateModified: post.updated_at,
+      author: { "@type": "Organization", name: "Kitchen Made Health editorial desk", url: absoluteUrl("/editorial-policy#editorial-desk") },
+      publisher: { "@type": "Organization", name: SITE_NAME, url: absoluteUrl(), logo: { "@type": "ImageObject", url: absoluteUrl("/images/brand-mark.svg") } },
+      inLanguage: "en", articleSection: post.category?.name,
+    },
+    {
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl() },
+        { "@type": "ListItem", position: 2, name: "Journal", item: absoluteUrl("/blog") },
+        { "@type": "ListItem", position: 3, name: post.title, item: absoluteUrl(`/blog/${post.slug}`) },
+      ],
+    },
+  ];
   const pdfUrl = post.pdf_attachment && isSupabaseConfigured()
     ? createPublicClient(PUBLIC_POSTS_CACHE_TAG).storage.from(POST_PDF_BUCKET).getPublicUrl(post.pdf_attachment.path).data.publicUrl
     : null;
@@ -59,14 +87,12 @@ export default async function PostPage({ params }: PageProps) {
     <article>
       <PostViewTracker postId={post.id} />
       <header className="relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-[#0b241a] text-white">
-        {post.cover_image_url && (
           <UserCoverImage
-            src={post.cover_image_url}
-            alt={post.cover_image_alt ?? ""}
+            src={post.cover_image_url || "/images/kitchen-made-health-hero.webp"}
+            alt={post.cover_image_alt || "Fresh produce and kitchen objects"}
             priority
             className="object-cover"
           />
-        )}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,22,15,.3)_0%,rgba(6,22,15,.25)_30%,rgba(6,22,15,.94)_100%)]" />
         <div className="container-wide relative z-10 flex min-h-[calc(100svh-4.75rem)] flex-col justify-between py-9 md:py-12">
           <Link
@@ -87,9 +113,10 @@ export default async function PostPage({ params }: PageProps) {
               {post.excerpt}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4 text-[9px] font-bold uppercase tracking-[.15em] text-white/55">
-              <span>By Kitchen Made Health</span>
+              <Link className="underline underline-offset-4" href="/editorial-policy#editorial-desk">Kitchen Made Health editorial desk</Link>
               <span className="h-px w-7 bg-white/30" />
               <span>{formatDate(post.published_at)}</span>
+              <span>Updated {formatDate(post.updated_at, "short")}</span>
               <span className="h-px w-7 bg-white/30" />
               <span className="flex items-center gap-1.5">
                 <Clock3 size={12} /> {readingTime(post.content)} min read
@@ -116,6 +143,9 @@ export default async function PostPage({ params }: PageProps) {
           <div className="mb-10 flex items-center justify-between border-b border-line pb-5 lg:hidden">
             <p className="eyebrow text-stone">The story</p>
             <ShareButton title={post.title} />
+          </div>
+          <div className="mb-8 rounded-xl border border-line bg-cream p-5 text-sm leading-7 text-stone">
+            <p>General educational information. This article does not claim independent medical review. <Link className="font-semibold text-ink underline underline-offset-4" href="/editorial-policy">How we publish and use sources</Link>.</p>
           </div>
           <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
           {supportingImages.length > 0 && (
@@ -187,6 +217,7 @@ export default async function PostPage({ params }: PageProps) {
               editorial opinions are independent, and we make the tradeoffs as
               visible as the benefits.
             </p>
+            <p className="mt-4 text-sm leading-7 text-stone">Health information is not a personal treatment plan. <Link className="text-ink underline underline-offset-4" href="/medical-disclaimer">Read the medical disclaimer</Link> or <Link className="text-ink underline underline-offset-4" href="/contact">send a correction</Link>.</p>
           </div>
         </div>
 
@@ -200,6 +231,7 @@ export default async function PostPage({ params }: PageProps) {
       <Suspense fallback={null}>
         <RelatedPosts postId={post.id} categorySlug={post.category?.slug} />
       </Suspense>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
     </article>
   );
 }

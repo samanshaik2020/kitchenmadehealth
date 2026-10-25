@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useActionState } from "react";
 import { subscribeNewsletter } from "@/app/(public)/actions";
 import type { ActionState } from "@/lib/types";
+import Link from "next/link";
 
 const initialState: ActionState = { success: false, message: "" };
 
@@ -22,12 +23,12 @@ export function Newsletter() {
               Something worth keeping.
             </h2>
             <p className="mt-5 max-w-lg text-sm leading-7 text-white/65">
-              A considered Sunday letter about food, useful objects, and the
-              gentle art of living well. No noise, only nourishment.
+              Occasional notes about food, useful objects, and everyday wellbeing.
+              Join our mailing list to hear when there is something worth sharing.
             </p>
           </div>
           {state.success ? (
-            <p className="border border-white/15 bg-white/10 p-5 text-sm font-semibold">
+            <p role="status" className="border border-white/15 bg-white/10 p-5 text-sm font-semibold">
               {state.message}
             </p>
           ) : (
@@ -44,6 +45,8 @@ export function Newsletter() {
                   name="email"
                   type="email"
                   required
+                  autoComplete="email"
+                  aria-describedby="newsletter-privacy"
                   placeholder="Your email address"
                   className="min-w-0 flex-1 bg-transparent px-1 text-sm text-white outline-none placeholder:text-white/45"
                 />
@@ -56,6 +59,9 @@ export function Newsletter() {
                   <ArrowRight size={18} />
                 </button>
               </form>
+              <p id="newsletter-privacy" className="mt-4 text-xs leading-6 text-white/80">
+                We use your email to manage the mailing list. Read our <Link className="underline underline-offset-4" href="/privacy-policy">privacy policy</Link>. To unsubscribe or request removal, <a className="underline underline-offset-4" href="mailto:hello@kitchenmadehealth.com?subject=Unsubscribe%20request">email the editorial desk</a>.
+              </p>
               {state.message && (
                 <p className="mt-2 text-xs text-red-200" role="alert">{state.message}</p>
               )}

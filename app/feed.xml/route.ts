@@ -1,7 +1,10 @@
 import { getPublishedPosts } from "@/lib/posts";
+import { absoluteUrl, SITE_DESCRIPTION } from "@/lib/site-config";
+
+export const revalidate = 300;
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenmadehealth.com";
+  const baseUrl = absoluteUrl().replace(/\/$/, "");
   const { posts } = await getPublishedPosts({ pageSize: 50 });
 
   const escapeXml = (value: string) =>
@@ -30,7 +33,7 @@ export async function GET() {
 <channel>
   <title>KitchenMadeHealth</title>
   <link>${baseUrl}</link>
-  <description>Thoughtful kitchenware guides, honest reviews, and practical advice.</description>
+  <description>${escapeXml(SITE_DESCRIPTION)}</description>
   ${items}
 </channel>
 </rss>`,

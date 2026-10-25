@@ -6,14 +6,17 @@ export function Logo({
   compact = false,
   inverse = false,
   small = false,
+  onNavigate,
 }: {
   compact?: boolean;
   inverse?: boolean;
   small?: boolean;
+  onNavigate?: () => void;
 }) {
   return (
     <Link
       href="/"
+      onClick={onNavigate}
       className={cn(
         "group inline-flex items-center gap-2.5",
         inverse ? "text-white" : "text-ink",

@@ -14,16 +14,17 @@ const links = [
   { href: "/products", label: "Products" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ showProducts = false }: { showProducts?: boolean }) {
   const [open, setOpen] = useState(false);
+  const visibleLinks = links.filter((link) => link.href !== "/products" || showProducts);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0d241b]/95 text-white shadow-[0_12px_40px_rgba(4,17,12,.12)] backdrop-blur-xl">
       <div className="container-wide flex h-[4.75rem] items-center justify-between">
-        <Logo inverse />
+        <Logo inverse onNavigate={() => setOpen(false)} />
         <div className="hidden items-center gap-5 min-[1120px]:flex">
           <nav className="flex items-center gap-4" aria-label="Primary navigation">
-            {links.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -41,17 +42,17 @@ export function SiteHeader() {
           </Link>
         </div>
         <div className="flex items-center gap-1 min-[1120px]:hidden">
-          <Link href="/blog" className="grid size-10 place-items-center rounded-full text-white hover:bg-white/10" aria-label="Browse articles">
+          <Link href="/blog#article-search" onClick={() => setOpen(false)} className="grid size-11 place-items-center rounded-full text-white hover:bg-white/10" aria-label="Search articles">
             <Search size={19} />
           </Link>
-          <button className="grid size-10 place-items-center rounded-full text-white" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="Toggle navigation">
+          <button className="grid size-11 place-items-center rounded-full text-white" onClick={() => setOpen((value) => !value)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} aria-expanded={open} aria-controls="mobile-navigation" aria-label="Toggle navigation">
             {open ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
       </div>
       {open && (
-        <nav className="border-t border-white/10 bg-[#0d241b] px-5 py-4 shadow-xl min-[1120px]:hidden" aria-label="Mobile navigation">
-          {links.map((link) => (
+        <nav id="mobile-navigation" className="border-t border-white/10 bg-[#0d241b] px-5 py-4 shadow-xl min-[1120px]:hidden" aria-label="Mobile navigation" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
+          {visibleLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}

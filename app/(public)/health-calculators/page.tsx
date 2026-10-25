@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, serializeJsonLd } from "@/lib/site-config";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     canonical: "/health-calculators",
   },
   openGraph: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     title: "Free Health Calculator Suite | Kitchen Made Health",
     description:
       "Five practical health calculators. No account, no saved data, and nothing sent to a server.",
@@ -83,7 +85,7 @@ export default function HealthCalculatorsPage() {
     name: "Kitchen Made Health Calculator Suite",
     applicationCategory: "HealthApplication",
     operatingSystem: "Any",
-    url: "https://kitchenmadehealth.com/health-calculators",
+    url: absoluteUrl("/health-calculators"),
     description:
       "Browser-based adult BMI, calorie, macro, body-fat, water, and healthy-weight calculators.",
     offers: {
@@ -259,7 +261,7 @@ export default function HealthCalculatorsPage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
       />
     </>
   );

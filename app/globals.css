@@ -8,8 +8,9 @@
   --color-ink: #10261d;
   --color-stone: #667068;
   --color-brown: #705a42;
-  --color-terracotta: #c9623f;
-  --color-terracotta-dark: #a9462b;
+  --color-terracotta: #a3472c;
+  --color-terracotta-dark: #86371f;
+  --color-terracotta-light: #e7a386;
   --color-sage: #9dad82;
   --color-sage-dark: #274a38;
   --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
@@ -31,6 +32,29 @@ body {
   font-family: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
   text-rendering: optimizeLegibility;
 }
+
+.skip-link {
+  position: fixed;
+  z-index: 200;
+  top: 1rem;
+  left: 1rem;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  background: var(--color-paper);
+  padding: 0.85rem 1rem;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+:where(a, button, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px var(--color-paper);
+}
+
+main:focus { outline: none; }
 
 ::selection {
   background: #c9ddbe;
