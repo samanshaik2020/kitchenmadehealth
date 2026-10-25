@@ -1,6 +1,8 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
+import { useState } from "react";
+import Link from "next/link";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import {
@@ -15,8 +17,11 @@ import {
   Quote,
   Redo2,
   Undo2,
+  Youtube,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getYouTubeVideoId } from "@/lib/youtube";
+import { YouTubeNode } from "@/components/admin/youtube-node";
 
 export function PostEditor({
   content,
@@ -25,8 +30,12 @@ export function PostEditor({
   content: string;
   onChange: (html: string) => void;
 }) {
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoError, setVideoError] = useState("");
   const editor = useEditor({
-    extensions: [StarterKit, Image],
+    extensions: [StarterKit, Image, YouTubeNode],
     content,
     immediatelyRender: false,
     editorProps: {
@@ -124,6 +133,8 @@ export function PostEditor({
         >
           <ImageIcon size={15} />
         </button>
+        <Link href="/dashboard/media#images" target="_blank" className="px-2 py-2 text-xs font-semibold text-stone hover:text-ink">Image library</Link>
+        <button type="button" aria-label="Add YouTube video" aria-expanded={showVideo} onClick={() => setShowVideo(!showVideo)} className="inline-flex min-h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-stone hover:bg-white hover:text-ink"><Youtube size={17} />YouTube</button>
         <span className="ml-auto flex gap-1">
           <button
             type="button"
@@ -145,6 +156,20 @@ export function PostEditor({
           </button>
         </span>
       </div>
+      {showVideo && <div role="region" aria-label="Add YouTube video" className="space-y-3 border-b border-line bg-cream/50 p-4">
+        <label className="block text-xs font-semibold" htmlFor="article-youtube-url">YouTube video link</label>
+        <input id="article-youtube-url" type="url" value={videoUrl} onChange={(event) => { setVideoUrl(event.target.value); setVideoError(""); }} placeholder="https://www.youtube.com/watch?v=…" className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" aria-invalid={Boolean(videoError)} aria-describedby={videoError ? "article-youtube-error" : undefined} />
+        <label className="block text-xs font-semibold" htmlFor="article-youtube-title">Video title (optional)</label>
+        <input id="article-youtube-title" value={videoTitle} maxLength={180} onChange={(event) => setVideoTitle(event.target.value)} placeholder="A short description for readers" className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" />
+        <p className="text-xs leading-5 text-stone">Paste a YouTube watch, share, Shorts, or live link. The video will appear at your cursor in this article.</p>
+        {videoError && <p id="article-youtube-error" role="alert" className="text-xs text-red-700">{videoError}</p>}
+        <div className="flex gap-3"><button type="button" className="min-h-11 rounded-full bg-ink px-5 text-xs font-bold text-white" onClick={() => {
+          const videoId = getYouTubeVideoId(videoUrl);
+          if (!videoId) { setVideoError("Paste a valid YouTube video link."); return; }
+          editor.chain().focus().insertContent({ type: "youtubeVideo", attrs: { videoId, title: videoTitle.trim() || "YouTube video" } }).run();
+          setShowVideo(false); setVideoUrl(""); setVideoTitle(""); setVideoError("");
+        }}>Insert video</button><button type="button" onClick={() => { setShowVideo(false); setVideoError(""); }} className="min-h-11 px-3 text-xs font-semibold">Cancel</button></div>
+      </div>}
       <EditorContent editor={editor} />
     </div>
   );

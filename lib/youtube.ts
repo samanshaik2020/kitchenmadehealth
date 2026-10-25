@@ -15,6 +15,8 @@ export function getYouTubeVideoId(value: string): string | null {
     if (host === "youtu.be" || host === "www.youtu.be") {
       if (!/^\/[^/]+\/?$/.test(url.pathname)) return null;
       id = url.pathname.split("/")[1];
+    } else if (["youtube-nocookie.com", "www.youtube-nocookie.com"].includes(host)) {
+      id = url.pathname.match(/^\/embed\/([^/]+)\/?$/)?.[1] ?? null;
     } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
       if (url.pathname === "/watch") id = url.searchParams.get("v");
       else id = url.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)\/?$/)?.[1] ?? null;
@@ -27,6 +29,10 @@ export function getYouTubeVideoId(value: string): string | null {
 
 export function youtubeWatchUrl(videoId: string) {
   return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+export function youtubeEmbedUrl(videoId: string) {
+  return `https://www.youtube-nocookie.com/embed/${videoId}`;
 }
 
 export function youtubeThumbnailUrl(videoId: string) {

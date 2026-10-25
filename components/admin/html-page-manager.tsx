@@ -22,7 +22,6 @@ import {
   setHtmlPageStatus,
 } from "@/app/(admin)/dashboard/html-pages/actions";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { HtmlImageLibrary } from "@/components/admin/html-image-library";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -200,7 +199,6 @@ export function HtmlPageManager({
           </div>
         )}
       </section>
-      <HtmlImageLibrary supabaseConfigured={supabaseConfigured} />
       </div>
 
       <aside className="border border-line bg-white p-5 shadow-[0_16px_55px_rgba(16,38,29,.05)] sm:p-6 xl:sticky xl:top-6">

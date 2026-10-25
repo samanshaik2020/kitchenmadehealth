@@ -2,7 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import sanitizeHtml from "sanitize-html";
+import { sanitizePostContent } from "@/lib/post-content";
 import { z } from "zod";
 import {
   databaseUpgradeMessage,
@@ -141,36 +141,7 @@ function parseRelations(formData: FormData) {
 }
 
 function sanitizeContent(content: string) {
-  return sanitizeHtml(content, {
-    allowedTags: [
-      "p",
-      "h2",
-      "h3",
-      "h4",
-      "strong",
-      "em",
-      "s",
-      "blockquote",
-      "ul",
-      "ol",
-      "li",
-      "br",
-      "a",
-      "img",
-      "code",
-      "pre",
-    ],
-    allowedAttributes: {
-      a: ["href", "target", "rel"],
-      img: ["src", "alt", "title", "width", "height"],
-    },
-    allowedSchemes: ["http", "https", "mailto"],
-    transformTags: {
-      a: sanitizeHtml.simpleTransform("a", {
-        rel: "noopener noreferrer",
-      }),
-    },
-  });
+  return sanitizePostContent(content);
 }
 
 function toDatabaseInput(input: PostInput, publishedAt?: string | null) {

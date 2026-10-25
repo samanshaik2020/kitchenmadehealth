@@ -8,12 +8,12 @@ const require = createRequire(import.meta.url);
 function loadModule(path, dependencies = {}) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
   });
   const exports = {};
   new Function("exports", "require", outputText)(exports, (name) => {
     if (Object.hasOwn(dependencies, name)) return dependencies[name];
-    if (name === "zod") return require(name);
+    if (name === "zod" || name === "sanitize-html") return require(name);
     throw new Error(`Unexpected dependency: ${name}`);
   });
   return exports;
@@ -21,6 +21,7 @@ function loadModule(path, dependencies = {}) {
 
 const youtube = loadModule("../lib/youtube.ts");
 const pdf = loadModule("../lib/post-pdfs.ts");
+const { sanitizePostContent } = loadModule("../lib/post-content.ts", { "@/lib/youtube": youtube });
 const videoId = "aB3_dE-4567";
 const ownerId = "730cb6cc-85be-4a68-9b1f-344a75520c79";
 const validPdf = () => new File(["%PDF-1.7\nexample"], "guide.pdf", { type: "application/pdf" });
@@ -54,8 +55,43 @@ test("YouTube watch, short, mobile, Shorts, live and embed URLs normalize to one
     `https://youtube.com/shorts/${videoId}`,
     `https://youtube.com/live/${videoId}`,
     `https://www.youtube.com/embed/${videoId}`,
+    `https://www.youtube-nocookie.com/embed/${videoId}`,
   ]) assert.equal(youtube.getYouTubeVideoId(url), videoId, url);
   assert.equal(youtube.youtubeWatchUrl(videoId), `https://www.youtube.com/watch?v=${videoId}`);
+});
+
+test("article video sanitization keeps a normalized YouTube embed and removes hostile iframe inputs", () => {
+  const clean = sanitizePostContent(`<div data-youtube-video=""><iframe src="https://youtu.be/${videoId}?autoplay=1" title="Cooking video" onload="alert(1)" srcdoc="bad"></iframe></div><p>Continue reading.</p>`);
+  assert.ok(clean.includes(youtube.youtubeEmbedUrl(videoId)));
+  assert.ok(clean.includes('data-youtube-video'));
+  assert.ok(clean.includes('title="Cooking video"'));
+  assert.ok(clean.includes('<p>Continue reading.</p>'));
+  assert.doesNotMatch(clean, /autoplay|onload|srcdoc/);
+  for (const src of ['javascript:alert(1)','https://evil.example/embed/'+videoId,'/dashboard','https://www.youtube-nocookie.com/redirect?url=https://evil.example']) {
+    assert.doesNotMatch(sanitizePostContent(`<iframe src="${src}"></iframe>`), /<iframe/);
+  }
+  assert.doesNotMatch(sanitizePostContent('<script>alert(1)</script><img src="x" onerror="alert(1)">'), /script|onerror/);
+});
+
+test("PDF library lists only the signed-in owner's valid PDFs, including legacy paths", async () => {
+  const rows = [
+    {id:'one',name:'old-file.pdf',metadata:{size:120,mimetype:'application/pdf'}},
+    {id:'two',name:'730cb6cc-85be-4a68-9b1f-344a75520c79-cooking-guide.pdf',metadata:{size:240,mimetype:'application/pdf'}},
+    {id:'three',name:'folder/bad.pdf',metadata:{size:120,mimetype:'application/pdf'}},
+    {id:'four',name:'wrong.pdf',metadata:{size:120,mimetype:'text/html'}},
+    {id:'five',name:'large.pdf',metadata:{size:5_000_000,mimetype:'application/pdf'}},
+    {id:'six',name:'missing.pdf',metadata:null},
+    {id:null,name:'folder',metadata:null},
+  ];
+  const client = {auth:{getUser:async()=>({data:{user:{id:ownerId}}})},storage:{from:bucket=>{
+    assert.equal(bucket,'post-pdfs');
+    return {list:async(folder,options)=>{assert.equal(folder,ownerId);assert.equal(options.limit,100);return {data:rows,error:null};},getPublicUrl:path=>({data:{publicUrl:'https://storage.example/'+path}})};
+  }}};
+  const items = await pdf.listPostPdfs(client);
+  assert.equal(items.length,2);
+  assert.equal(items[1].name,'cooking-guide.pdf');
+  assert.ok(items.every(item=>item.path.startsWith(ownerId+'/')));
+  await assert.rejects(pdf.listPostPdfs(storageClient({signedOut:true})),/sign in again/);
 });
 
 test("unrelated, malformed, channel, playlist and hostile URLs are rejected", () => {

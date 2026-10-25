@@ -17,7 +17,8 @@ Supabase, and Tiptap.
 - HTML page image library with reusable public image URLs, copy-link and delete buttons
 - Homepage category images from the latest published post in each category
 - One PDF attachment per story, strictly below 5 MB
-- Six dashboard-managed YouTube URL slots with a 3-by-2 homepage thumbnail grid
+- YouTube video links inserted directly into article content
+- A visible Images & PDFs library with reusable public links
 - Validated Server Actions for create, edit, publish, unpublish, and delete
 - RLS-protected database and Storage policies
 - Independent public product catalog with affiliate buttons and click tracking
@@ -47,23 +48,27 @@ and dashboard run in preview mode with sample content.
 10. Add an email/password editor in Supabase Authentication.
 11. Restart `npm run dev`, then sign in at `/login`.
 
-In the story editor, use **PDF attachment** to upload or replace one PDF. Files
+In **Images & PDFs** (`/dashboard/media`), upload images or PDFs and copy their
+public links. In the story editor, use **PDF attachment → Choose uploaded PDF**
+to attach or replace one of your uploaded PDFs. Uploading is kept in the media
+library rather than the blog editor. Files
 must be strictly below 5,000,000 bytes; empty files and other formats are rejected.
 Save or update the story to show its **Open PDF** link below the article. Removing
 the attachment and saving hides the link. Detached files remain in Storage so
 older story revisions can restore them. PDFs use a public bucket, like story images.
 
-In **YouTube links** (`/dashboard/videos`), paste up to six YouTube video URLs,
-optionally add titles, and save. Standard watch, short, Shorts, live, and embed
-URLs are accepted. The homepage shows linked thumbnails in slot order, three
-columns on desktop, two on tablet, and one on mobile. It loads no video player.
-Empty slots stay hidden; clearing every slot hides the section.
+In the article editor toolbar, choose **YouTube**, paste a video URL, optionally
+add a title, and choose **Insert video**. Watch, share, Shorts, live, and embed
+URLs are accepted. The video is saved in the article body and uses YouTube's
+privacy-enhanced embed host. Invalid URLs and unrelated iframes are rejected.
+The former `/dashboard/videos` page redirects to the article editor. Existing
+homepage video records are retained for compatibility.
 
 Category tiles automatically use each category's most recently published post
 cover. If that post has no cover, the tile uses its default image. Publishing,
 updating, moving, unpublishing, or deleting a post invalidates the homepage cache.
 
-In `/dashboard/html-pages`, use **Image library → Upload image & get link**.
+In **Images & PDFs → Image library**, use **Upload image & get link**.
 JPG, PNG, WebP, GIF, and AVIF images up to 5 MB receive public URLs that can be
 copied into any HTML document or website. The library shows your 20 most recent
 uploads after a refresh. Uploading another image creates a new URL; existing

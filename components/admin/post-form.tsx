@@ -19,7 +19,6 @@ import {
   CheckCircle2,
   Clock3,
   ExternalLink,
-  FileText,
   History,
   ImagePlus,
   Link2,
@@ -43,7 +42,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { createClient } from "@/lib/supabase/client";
-import { pdfUploadErrorMessage, uploadPostPdf, validatePostPdf, type PostPdfAttachment } from "@/lib/post-pdfs";
+import type { PostPdfAttachment } from "@/lib/post-pdfs";
+import { PostPdfPicker } from "@/components/admin/post-pdf-picker";
 import type {
   ActionState,
   AffiliateLink,
@@ -109,8 +109,6 @@ export function PostForm({
   const [coverUrl, setCoverUrl] = useState(post?.cover_image_url ?? "");
   const [coverAlt, setCoverAlt] = useState(post?.cover_image_alt ?? "");
   const [pdfAttachment, setPdfAttachment] = useState<PostPdfAttachment | null>(post?.pdf_attachment ?? null);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
-  const [pdfError, setPdfError] = useState("");
   const [supportingImage1Url, setSupportingImage1Url] = useState(
     post?.supporting_image_1_url ?? "",
   );
@@ -161,7 +159,7 @@ export function PostForm({
   };
 
   useEffect(() => {
-    if (!post || post.status === "published" || !dirty || uploadingPdf) return;
+    if (!post || post.status === "published" || !dirty) return;
 
     const timeout = window.setTimeout(async () => {
       setAutosaveState("saving");
@@ -204,7 +202,6 @@ export function PostForm({
     coverUrl,
     coverAlt,
     pdfAttachment,
-    uploadingPdf,
     supportingImage1Url,
     supportingImage1Alt,
     supportingImage2Url,
@@ -295,24 +292,6 @@ export function PostForm({
     }
   }
 
-  async function uploadPdf(file: File | undefined) {
-    if (!file) return;
-    const validationError = validatePostPdf(file);
-    if (validationError) { setPdfError(validationError); return; }
-    if (!supabaseConfigured) { setPdfError("Connect Supabase before uploading a PDF."); return; }
-    setUploadingPdf(true);
-    setPdfError("");
-    try {
-      const attachment = await uploadPostPdf(createClient(), file);
-      setPdfAttachment(attachment);
-      markDirty();
-    } catch (error) {
-      setPdfError(pdfUploadErrorMessage(error));
-    } finally {
-      setUploadingPdf(false);
-    }
-  }
-
   function restore(revisionId: string) {
     if (!post || !window.confirm("Restore this revision? Your current version will be kept in history.")) return;
     startRestore(async () => {
@@ -359,7 +338,7 @@ export function PostForm({
               type="submit"
               name="status"
               value="draft"
-              disabled={pending || uploadingPdf}
+              disabled={pending}
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[10px] font-bold uppercase tracking-[.09em] text-white/75 hover:bg-white/10 disabled:opacity-50"
             >
               {pending ? <LoaderCircle size={13} className="animate-spin" /> : <Save size={13} />}
@@ -369,7 +348,7 @@ export function PostForm({
               type="submit"
               name="status"
               value="scheduled"
-              disabled={pending || uploadingPdf || !scheduledAt}
+              disabled={pending || !scheduledAt}
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 text-[10px] font-bold uppercase tracking-[.09em] text-amber-100 disabled:opacity-40"
             >
               <CalendarClock size={13} /> Schedule
@@ -378,7 +357,7 @@ export function PostForm({
               type="submit"
               name="status"
               value="published"
-              disabled={pending || uploadingPdf}
+              disabled={pending}
               className="inline-flex min-h-10 items-center gap-2 rounded-full bg-terracotta px-4 text-[10px] font-bold uppercase tracking-[.09em] text-white hover:bg-terracotta-dark disabled:opacity-50"
             >
               <Send size={13} /> {post?.status === "published" ? "Update live story" : "Publish now"}
@@ -808,20 +787,8 @@ export function PostForm({
           <section className="border border-line bg-white p-5 shadow-[0_12px_40px_rgba(16,38,29,.035)]">
             <p className="eyebrow text-terracotta">Reader download</p>
             <h2 className="mt-2 font-display text-2xl font-medium">PDF attachment</h2>
-            <p id="pdf-help" className="mt-2 text-xs leading-6 text-stone">Attach one PDF below 5 MB. Readers can open it below the article after you publish or update.</p>
-            {pdfAttachment && (
-              <div className="mt-4 flex items-start gap-3 border border-line bg-cream/50 p-3">
-                <FileText size={20} className="mt-0.5 shrink-0 text-terracotta" />
-                <div className="min-w-0 flex-1"><p className="break-words text-xs font-semibold">{pdfAttachment.name}</p><p className="mt-1 text-[10px] text-stone">{(pdfAttachment.size / 1_000_000).toFixed(2)} MB · PDF</p></div>
-                <button type="button" disabled={uploadingPdf || pending} aria-label="Remove PDF attachment" className="shrink-0 p-1 text-stone disabled:opacity-50" onClick={() => { setPdfAttachment(null); setPdfError(""); markDirty(); }}><X size={16} /></button>
-              </div>
-            )}
-            <div className="mt-4">
-              <Label htmlFor="post-pdf">{pdfAttachment ? "Replace PDF" : "Upload PDF"}</Label>
-              <input id="post-pdf" type="file" accept=".pdf,application/pdf" disabled={uploadingPdf || pending} aria-describedby="pdf-help" className="w-full text-xs text-stone file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white disabled:opacity-50" onChange={(event) => { uploadPdf(event.target.files?.[0]); event.currentTarget.value = ""; }} />
-            </div>
-            {uploadingPdf && <p role="status" className="mt-3 flex items-center gap-2 text-xs text-stone"><LoaderCircle size={14} className="animate-spin" />Uploading PDF…</p>}
-            {pdfError && <p role="alert" className="mt-3 text-xs leading-5 text-red-700">{pdfError}</p>}
+            <p className="mt-2 text-xs leading-6 text-stone">Choose a PDF from your library. Readers can open it below the published article.</p>
+            <PostPdfPicker attachment={pdfAttachment} disabled={pending} supabaseConfigured={supabaseConfigured} onChange={(attachment) => { setPdfAttachment(attachment); markDirty(); }} />
             {fieldError("pdf_attachment")}
           </section>
 

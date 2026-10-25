@@ -4,6 +4,7 @@ export const POST_PDF_BUCKET = "post-pdfs";
 // MB is decimal. Files must be strictly below 5 MB, including in Storage.
 export const PDF_SIZE_LIMIT = 5_000_000;
 export type PostPdfAttachment = { path: string; name: string; size: number };
+export type LibraryPdf = PostPdfAttachment & { publicUrl: string };
 type PdfClient = Pick<SupabaseClient, "auth" | "storage">;
 
 export function validatePostPdf(file: File): string | null {
@@ -24,12 +25,28 @@ export async function uploadPostPdf(supabase: PdfClient, file: File): Promise<Po
   if (await file.slice(0, 5).text() !== "%PDF-") throw new Error("This file is not a valid PDF. Choose another file.");
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Your session has expired. Please sign in again.");
-  const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+  const stem = file.name.replace(/\.pdf$/i, "").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 100) || "document";
+  const path = `${user.id}/${crypto.randomUUID()}-${stem}.pdf`;
   const { error } = await supabase.storage.from(POST_PDF_BUCKET).upload(path, file, {
     contentType: "application/pdf", upsert: false,
   });
   if (error) throw error;
   return { path, name: file.name.slice(0, 180), size: file.size };
+}
+
+export async function listPostPdfs(supabase: PdfClient): Promise<LibraryPdf[]> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Your session has expired. Please sign in again.");
+  const bucket = supabase.storage.from(POST_PDF_BUCKET);
+  const { data, error } = await bucket.list(user.id, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+  if (error) throw error;
+  return (data ?? []).flatMap(file => {
+    const size: unknown = file.metadata?.size;
+    if (!file.id || !isPostPdfPath(`${user.id}/${file.name}`, user.id) || file.metadata?.mimetype !== "application/pdf" || typeof size !== "number" || size <= 0 || size >= PDF_SIZE_LIMIT) return [];
+    const path = `${user.id}/${file.name}`;
+    const name = file.name.replace(/^[0-9a-f-]{36}-/i, "");
+    return [{ path, name, size, publicUrl: bucket.getPublicUrl(path).data.publicUrl }];
+  });
 }
 
 // Check the stored file when saving, rather than trusting submitted metadata.
@@ -45,7 +62,7 @@ export async function verifyPostPdf(supabase: PdfClient, ownerId: string, attach
 }
 
 export function pdfUploadErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : "PDF upload failed. Please try again.";
+  const message = error && typeof error === "object" && "message" in error && typeof error.message === "string" ? error.message : "PDF storage could not be reached. Please try again.";
   return message.toLowerCase().includes("bucket not found")
     ? "PDF storage is not set up yet. Run the pending Supabase migration, then try again."
     : message;
