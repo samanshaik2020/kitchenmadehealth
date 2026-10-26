@@ -1,0 +1,13 @@
+Topic photo library, downloaded from Unsplash for Kitchen Made Health.
+Source image URLs:
+balanced-meals.jpg: https://images.unsplash.com/photo-1490645935967-10de6ba17061
+tea-ritual.jpg: https://images.unsplash.com/photo-1544787219-7f47ccb76574
+mindful-moments.jpg: https://images.unsplash.com/photo-1506126613408-eca07ce68773
+forest-calm.jpg: https://images.unsplash.com/photo-1441974231531-c6227db76b6e
+nourishing-bowl.jpg: https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38
+daily-movement.jpg: https://images.unsplash.com/photo-1476480862126-209bfaa8edc8
+outdoor-yoga.jpg: https://images.unsplash.com/photo-1544367567-0f2fcb009e0b
+seasonal-salad.jpg: https://images.unsplash.com/photo-1512621776951-a57141f2eefd
+
+Display fonts: Cormorant Garamond and DM Sans, distributed under the SIL Open
+Font License. License files are in public/fonts/.

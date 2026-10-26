@@ -14,7 +14,8 @@ import { PUBLIC_POSTS_CACHE_TAG } from "@/lib/public-cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { formatDate, readingTime } from "@/lib/utils";
-import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_NAME } from "@/lib/site-config";
+import { absoluteUrl, serializeJsonLd, SITE_NAME } from "@/lib/site-config";
+import { getPostImage } from "@/lib/editorial-images";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -43,9 +44,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       modifiedTime: post.updated_at,
       siteName: SITE_NAME,
       url: absoluteUrl(`/blog/${post.slug}`),
-      images: [{ url: post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE), alt: post.cover_image_alt || post.title }],
+      images: [{ url: absoluteUrl(getPostImage(post).src), alt: getPostImage(post).alt || post.title }],
     },
-    twitter: { card: "summary_large_image", title: post.seo_title ?? post.title, description: post.seo_description ?? post.excerpt ?? undefined, images: [post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE)] },
+    twitter: { card: "summary_large_image", title: post.seo_title ?? post.title, description: post.seo_description ?? post.excerpt ?? undefined, images: [absoluteUrl(getPostImage(post).src)] },
   };
 }
 
@@ -59,7 +60,7 @@ export default async function PostPage({ params }: PageProps) {
       "@id": absoluteUrl(`/blog/${post.slug}#article`),
       mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
       headline: post.title, description: post.seo_description || post.excerpt || undefined,
-      image: [post.cover_image_url || absoluteUrl(DEFAULT_SOCIAL_IMAGE)],
+      image: [absoluteUrl(getPostImage(post).src)],
       datePublished: post.published_at || post.created_at, dateModified: post.updated_at,
       author: { "@type": "Organization", name: "Kitchen Made Health editorial desk", url: absoluteUrl("/editorial-policy#editorial-desk") },
       publisher: { "@type": "Organization", name: SITE_NAME, url: absoluteUrl(), logo: { "@type": "ImageObject", url: absoluteUrl("/images/brand-mark.svg") } },
@@ -88,8 +89,8 @@ export default async function PostPage({ params }: PageProps) {
       <PostViewTracker postId={post.id} />
       <header className="relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-[#0b241a] text-white">
           <UserCoverImage
-            src={post.cover_image_url || "/images/kitchen-made-health-hero.webp"}
-            alt={post.cover_image_alt || "Fresh produce and kitchen objects"}
+            src={getPostImage(post).src}
+            alt={getPostImage(post).alt}
             priority
             className="object-cover"
           />

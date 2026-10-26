@@ -157,18 +157,18 @@ export function PostEditor({
         </span>
       </div>
       {showVideo && <div role="region" aria-label="Add YouTube video" className="space-y-3 border-b border-line bg-cream/50 p-4">
-        <label className="block text-xs font-semibold" htmlFor="article-youtube-url">YouTube video link</label>
-        <input id="article-youtube-url" type="url" value={videoUrl} onChange={(event) => { setVideoUrl(event.target.value); setVideoError(""); }} placeholder="https://www.youtube.com/watch?v=…" className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" aria-invalid={Boolean(videoError)} aria-describedby={videoError ? "article-youtube-error" : undefined} />
+        <label className="block text-xs font-semibold" htmlFor="article-youtube-url">YouTube video link (optional)</label>
+        <input id="article-youtube-url" type="text" inputMode="url" value={videoUrl} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} onChange={(event) => { setVideoUrl(event.target.value); setVideoError(""); }} placeholder="https://www.youtube.com/watch?v=…" className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" aria-invalid={Boolean(videoError)} aria-describedby={videoError ? "article-youtube-error" : "article-youtube-help"} />
         <label className="block text-xs font-semibold" htmlFor="article-youtube-title">Video title (optional)</label>
         <input id="article-youtube-title" value={videoTitle} maxLength={180} onChange={(event) => setVideoTitle(event.target.value)} placeholder="A short description for readers" className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" />
-        <p className="text-xs leading-5 text-stone">Paste a YouTube watch, share, Shorts, or live link. The video will appear at your cursor in this article.</p>
+        <p id="article-youtube-help" className="text-xs leading-5 text-stone">Videos are optional. Leave this blank to publish without a video. A link is added to the article only when you choose Insert video.</p>
         {videoError && <p id="article-youtube-error" role="alert" className="text-xs text-red-700">{videoError}</p>}
         <div className="flex gap-3"><button type="button" className="min-h-11 rounded-full bg-ink px-5 text-xs font-bold text-white" onClick={() => {
           const videoId = getYouTubeVideoId(videoUrl);
           if (!videoId) { setVideoError("Paste a valid YouTube video link."); return; }
           editor.chain().focus().insertContent({ type: "youtubeVideo", attrs: { videoId, title: videoTitle.trim() || "YouTube video" } }).run();
           setShowVideo(false); setVideoUrl(""); setVideoTitle(""); setVideoError("");
-        }}>Insert video</button><button type="button" onClick={() => { setShowVideo(false); setVideoError(""); }} className="min-h-11 px-3 text-xs font-semibold">Cancel</button></div>
+        }}>Insert video</button><button type="button" onClick={() => { setShowVideo(false); setVideoUrl(""); setVideoTitle(""); setVideoError(""); }} className="min-h-11 px-3 text-xs font-semibold">Skip video</button></div>
       </div>}
       <EditorContent editor={editor} />
     </div>

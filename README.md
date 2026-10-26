@@ -61,11 +61,20 @@ In the article editor toolbar, choose **YouTube**, paste a video URL, optionally
 add a title, and choose **Insert video**. Watch, share, Shorts, live, and embed
 URLs are accepted. The video is saved in the article body and uses YouTube's
 privacy-enhanced embed host. Invalid URLs and unrelated iframes are rejected.
-The former `/dashboard/videos` page redirects to the article editor. Existing
-homepage video records are retained for compatibility.
+Article videos are optional. An uninserted video URL never blocks saving or
+publishing. Publish errors are summarized and focused above the editor; health
+guides still require a source link in their article text.
 
-Category tiles automatically use each category's most recently published post
-cover. If that post has no cover, the tile uses its default image. Publishing,
+Use **Homepage videos** (`/dashboard/videos`) to replace the six picks from the
+Kitchen Made Health YouTube channel,
+reorder them by slot, or clear a slot. The watchlist appears directly above the
+footer in two rows of three on desktop, two columns on tablets, and one on phones.
+Saved slots override the starter picks, including slots intentionally cleared.
+
+The main health categories use distinct local topic photographs so article
+thumbnail text does not compete with category titles. Custom categories choose
+a recent published post cover that is not already shown in the homepage journal.
+Generic hero images are skipped. Publishing,
 updating, moving, unpublishing, or deleting a post invalidates the homepage cache.
 
 In **Images & PDFs → Image library**, use **Upload image & get link**.

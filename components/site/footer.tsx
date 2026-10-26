@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowUpRight, Instagram, Mail } from "lucide-react";
+import { ArrowUpRight, Instagram, Mail, Youtube } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { getInstagramUrl } from "@/lib/site-config";
+import { YOUTUBE_CHANNEL_URL } from "@/lib/youtube";
 
 export function SiteFooter({ showProducts = false }: { showProducts?: boolean }) {
   const instagramUrl = getInstagramUrl();
@@ -33,6 +34,9 @@ export function SiteFooter({ showProducts = false }: { showProducts?: boolean })
           <div className="space-y-3 text-sm">
             <a className="flex items-center gap-2 text-white/75 hover:text-white" href="mailto:hello@kitchenmadehealth.com">
               <Mail size={15} /> Email us
+            </a>
+            <a className="flex items-center gap-2 text-white/75 hover:text-white" href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noopener noreferrer" aria-label="Kitchen Made Health on YouTube (opens in a new tab)">
+              <Youtube size={15} /> YouTube
             </a>
             {instagramUrl && <a className="flex items-center gap-2 text-white/75 hover:text-white" href={instagramUrl} aria-label="KitchenMadeHealth on Instagram" rel="noopener noreferrer">
               <Instagram size={15} /> Instagram

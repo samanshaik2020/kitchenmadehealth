@@ -9,28 +9,20 @@ import {
   Leaf,
   Quote,
   Sparkles,
+  Play,
 } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
 import { Newsletter } from "@/components/site/newsletter";
+import { HomeExperience } from "@/components/site/home-experience";
 import { YouTubeSection } from "@/components/site/youtube-section";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import { getCategories, getLatestCategoryCovers, getPublishedPosts } from "@/lib/posts";
 import { getYouTubeVideos } from "@/lib/youtube-data";
 import { formatDate, readingTime } from "@/lib/utils";
+import { categoryImages, getCategoryImage, getPostImage } from "@/lib/editorial-images";
 
 export const revalidate = 300;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
-
-const categoryImages: Record<string, string> = {
-  "diabetes-blood-sugar":
-    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1000&q=86",
-  knives:
-    "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=1000&q=86",
-  appliances:
-    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1000&q=86",
-  "home-remedies":
-    "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=1000&q=86",
-};
 
 const rituals = [
   {
@@ -51,24 +43,27 @@ const rituals = [
 ];
 
 export default async function HomePage() {
-  const [{ posts }, categories, categoryCovers, videos] = await Promise.all([
+  const [{ posts }, categories, videos] = await Promise.all([
     getPublishedPosts({ pageSize: 6 }),
     getCategories(),
-    getLatestCategoryCovers(),
     getYouTubeVideos(),
   ]);
   const [featured, ...latest] = posts;
+  const categoryCovers = categories.some((category) => !categoryImages[category.slug])
+    ? await getLatestCategoryCovers(posts.map((post) => getPostImage(post).src))
+    : {};
+  const featuredImage = featured ? getPostImage(featured) : null;
 
   return (
-    <>
-      <section className="grain relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-ink text-white">
+    <HomeExperience>
+      <section className="home-hero grain relative min-h-[calc(100svh-4.75rem)] overflow-hidden bg-ink text-white">
         <Image
           src="/images/kitchen-made-health-hero.webp"
           alt="Heirloom tomatoes, fresh herbs, citrus, and kitchenware in warm garden light"
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[66%_center]"
+          className="hero-image object-cover object-[66%_center]"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,20,14,.94)_0%,rgba(7,24,17,.76)_36%,rgba(7,24,17,.14)_71%,rgba(7,24,17,.18)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-[#081e16]/80 to-transparent" />
@@ -83,9 +78,9 @@ export default async function HomePage() {
             <p className="hero-rise hero-rise-delay-1 mb-6 font-display text-xl italic text-sage md:text-2xl">
               From garden, to kitchen, to you.
             </p>
-            <h1 className="hero-rise hero-rise-delay-2 text-balance font-display text-[3.7rem] font-medium leading-[.9] tracking-[-.065em] sm:text-[5rem] md:text-[6.8rem]">
+            <h1 className="hero-rise hero-rise-delay-2 text-balance font-display text-[4.25rem] font-medium leading-[.9] tracking-[-.045em] sm:text-[6rem] md:text-[7.5rem]">
               Where living well{" "}
-              <span className="outline-type italic">takes root.</span>
+              <span className="hero-accent italic">takes root.</span>
             </h1>
             <p className="hero-rise hero-rise-delay-3 mt-7 max-w-xl text-sm leading-7 text-white/67 md:text-base md:leading-8">
               A soulful guide to the tools, ingredients, and everyday rituals
@@ -93,16 +88,16 @@ export default async function HomePage() {
             </p>
             <div className="hero-rise hero-rise-delay-3 mt-9 flex flex-wrap gap-3">
               <Link
-                href="#philosophy"
+                href="#explore"
                 className="inline-flex min-h-13 items-center gap-3 rounded-full bg-cream px-6 text-xs font-bold uppercase tracking-[.08em] text-ink transition hover:-translate-y-1 hover:bg-white"
               >
-                Enter the kitchen <ArrowDown size={15} />
+                Find your inspiration <ArrowDown size={15} />
               </Link>
               <Link
-                href="/blog"
+                href="#youtube"
                 className="inline-flex min-h-13 items-center gap-3 rounded-full border border-white/30 bg-white/8 px-6 text-xs font-bold uppercase tracking-[.08em] text-white backdrop-blur-sm transition hover:bg-white/15"
               >
-                Read the journal <ArrowUpRight size={15} />
+                Watch & learn <Play size={15} />
               </Link>
             </div>
           </div>
@@ -134,12 +129,21 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <section id="philosophy" className="relative overflow-hidden py-20 md:py-32">
+      <nav aria-label="Explore homepage" className="home-quick-links border-b border-line bg-paper">
+        <div className="container-wide flex flex-wrap justify-center gap-x-9 gap-y-3 py-5 text-[10px] font-bold uppercase tracking-[.14em]">
+          <Link href="#explore">Explore your wellbeing <ArrowDown size={12} /></Link>
+          <Link href="#journal">Read the latest <ArrowDown size={12} /></Link>
+          <Link href="/health-calculators">Try the free tools <ArrowUpRight size={12} /></Link>
+          <Link href="#youtube">Find a moment of inspiration <Play size={12} /></Link>
+        </div>
+      </nav>
+
+      <section id="philosophy" className="relative overflow-hidden py-16 md:py-24">
         <div className="absolute -right-24 top-8 select-none font-display text-[18rem] italic leading-none text-ink/[.035] md:text-[28rem]">
           well
         </div>
         <div className="container-wide relative">
-          <div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
+          <div className="reveal grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
             <div>
               <p className="eyebrow text-terracotta">Our philosophy</p>
               <div className="mt-9 hidden h-44 w-px bg-line lg:block" />
@@ -161,7 +165,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-16 grid border-y border-line md:mt-24 md:grid-cols-3">
+          <div className="reveal mt-12 grid border-y border-line md:mt-16 md:grid-cols-3">
             {rituals.map((ritual) => (
               <article
                 key={ritual.number}
@@ -171,7 +175,7 @@ export default async function HomePage() {
                   <span className="font-display text-2xl italic text-terracotta">{ritual.number}</span>
                   <span className="h-px w-12 bg-line transition-all group-hover:w-20 group-hover:bg-terracotta" />
                 </div>
-                <h3 className="mt-12 font-display text-3xl font-medium tracking-[-.035em]">{ritual.title}</h3>
+                <h3 className="mt-7 font-display text-3xl font-medium tracking-[-.025em]">{ritual.title}</h3>
                 <p className="mt-4 max-w-sm text-sm leading-7 text-stone">{ritual.text}</p>
               </article>
             ))}
@@ -233,42 +237,41 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#0d281e] py-20 text-white md:py-28">
+      <section id="explore" className="bg-[#0d281e] py-20 text-white md:py-24">
         <div className="container-wide">
-          <div className="mb-12 grid gap-5 md:grid-cols-[1fr_.65fr] md:items-end">
+          <div className="reveal mb-10 grid gap-5 md:grid-cols-[1fr_.65fr] md:items-end">
             <div>
               <p className="eyebrow text-sage">Find your starting place</p>
               <h2 className="mt-4 max-w-3xl font-display text-5xl font-medium tracking-[-.055em] md:text-7xl">
-                Explore the kitchen.
+                A little better, <span className="italic text-sage">every day.</span>
               </h2>
             </div>
             <p className="max-w-md text-sm leading-7 text-white/55 md:pb-2">
-              Go deeper into the objects and rituals that make everyday
-              cooking calmer, healthier, and more your own.
+              Follow what feels useful to you. Practical food ideas, thoughtful
+              health guides, and small rituals worth making your own.
             </p>
           </div>
 
-          <div className="grid auto-rows-[21rem] gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="topic-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category, index) => (
               <Link
                 key={category.id}
                 href={`/category/${category.slug}`}
-                className={`group relative overflow-hidden ${
-                  index === 0 || index === 3 ? "lg:row-span-2" : ""
-                }`}
+                className={`topic-card reveal group relative isolate min-h-[23rem] overflow-hidden rounded-2xl ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}
               >
                 <UserCoverImage
-                  src={categoryCovers[category.id]?.cover_image_url ?? categoryImages[category.slug] ?? "/images/kitchen-made-health-hero.webp"}
-                  alt={categoryCovers[category.id]?.cover_image_alt ?? ""}
+                  src={categoryImages[category.slug]?.src ?? categoryCovers[category.id]?.cover_image_url ?? getCategoryImage(category.slug).src}
+                  alt={categoryImages[category.slug]?.alt ?? categoryCovers[category.id]?.cover_image_alt ?? ""}
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/5" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-black/5" />
+                <span className="absolute left-5 top-5 rounded-full border border-white/35 bg-ink/30 px-3 py-1.5 text-[10px] font-semibold tracking-[.14em] backdrop-blur-sm">{String(index + 1).padStart(2, "0")}</span>
                 <div className="absolute inset-x-0 bottom-0 p-6">
                   <p className="text-[10px] font-bold uppercase tracking-[.18em] text-sage">
-                    Chapter 0{index + 1}
+                    Explore & discover
                   </p>
                   <div className="mt-2 flex items-end justify-between gap-4">
-                    <h3 className="font-display text-3xl font-medium tracking-[-.04em]">{category.name}</h3>
+                    <h3 className="max-w-[15rem] font-display text-[2.2rem] font-medium leading-[1.02] tracking-[-.025em]">{category.name}</h3>
                     <span className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-white/10 backdrop-blur transition group-hover:bg-cream group-hover:text-ink">
                       <ArrowUpRight size={16} />
                     </span>
@@ -280,13 +283,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {featured && (
+      {featured && featuredImage && (
         <section className="overflow-hidden bg-clay">
-          <div className="grid min-h-[46rem] lg:grid-cols-[1.08fr_.92fr]">
-            <Link href={`/blog/${featured.slug}`} className="group relative min-h-[30rem] overflow-hidden">
+          <div className="grid lg:grid-cols-2">
+            <Link href={`/blog/${featured.slug}`} className="group relative min-h-[23rem] overflow-hidden lg:min-h-[36rem]">
                 <UserCoverImage
-                  src={featured.cover_image_url || "/images/kitchen-made-health-hero.webp"}
-                  alt={featured.cover_image_alt || "Fresh produce and kitchen objects"}
+                  src={featuredImage.src}
+                  alt={featuredImage.alt}
                   className="object-cover transition duration-700 group-hover:scale-[1.025]"
                 />
               <div className="absolute left-6 top-6 grid size-24 place-items-center rounded-full border border-white/50 bg-white/80 text-center text-[9px] font-bold uppercase tracking-[.15em] text-ink shadow-xl backdrop-blur md:left-10 md:top-10">
@@ -296,7 +299,7 @@ export default async function HomePage() {
               </div>
             </Link>
             <div className="flex items-center px-6 py-14 md:px-12 lg:px-16">
-              <div className="max-w-xl">
+              <div className="reveal max-w-xl">
                 <p className="eyebrow text-terracotta">The essential read</p>
                 <h2 className="mt-5 font-display text-5xl font-medium leading-[.98] tracking-[-.055em] md:text-6xl">
                   {featured.title}
@@ -319,8 +322,8 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="container-wide py-20 md:py-28">
-        <div className="mb-12 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
+      <section id="journal" className="container-wide py-20 md:py-24">
+        <div className="reveal mb-12 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="eyebrow text-terracotta">Fresh from the journal</p>
             <h2 className="mt-4 font-display text-5xl font-medium tracking-[-.055em] md:text-6xl">
@@ -339,7 +342,7 @@ export default async function HomePage() {
             {latest.map((post, index) => (
               <div
                 key={post.id}
-                className={index < 3 ? "lg:col-span-2" : "lg:col-span-3"}
+                className={`reveal ${index < 3 ? "lg:col-span-2" : "lg:col-span-3"}`}
               >
                 <PostCard post={post} index={index + 2} />
               </div>
@@ -352,8 +355,6 @@ export default async function HomePage() {
           </div>
         )}
       </section>
-
-      <YouTubeSection videos={videos} />
 
       <section className="bg-terracotta px-6 py-20 text-cream md:py-28">
         <div className="mx-auto max-w-5xl text-center">
@@ -369,6 +370,7 @@ export default async function HomePage() {
       </section>
 
       <Newsletter />
-    </>
+      <YouTubeSection videos={videos} />
+    </HomeExperience>
   );
 }

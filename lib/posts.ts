@@ -7,6 +7,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, Post } from "@/lib/types";
 import { normalizeSearchQuery, searchFilterWords } from "@/lib/article-search";
+import { imageIdentity, isGenericHero } from "@/lib/editorial-images";
 
 const POST_SELECT = "*, category:categories(*)";
 
@@ -82,28 +83,39 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 
 export type CategoryCover = { cover_image_url: string | null; cover_image_alt?: string | null };
 
-export async function getLatestCategoryCovers(): Promise<Record<string, CategoryCover>> {
+export async function getLatestCategoryCovers(excludedImages: string[] = []): Promise<Record<string, CategoryCover>> {
+  const used = new Set(excludedImages.map(imageIdentity));
+  const available = (cover: CategoryCover) => Boolean(cover.cover_image_url && !isGenericHero(cover.cover_image_url) && !used.has(imageIdentity(cover.cover_image_url)));
   if (!isSupabaseConfigured()) {
     const covers: Record<string, CategoryCover> = {};
     const sorted = [...demoPosts].filter((post) => post.status === "published")
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
     for (const post of sorted) {
-      if (post.category_id && !covers[post.category_id]) covers[post.category_id] = post;
+      if (post.category_id && !covers[post.category_id] && available(post)) {
+        covers[post.category_id] = post;
+        used.add(imageIdentity(post.cover_image_url!));
+      }
     }
     return covers;
   }
-  // Limit each embedded category's posts, rather than limiting the overall feed.
+  // Look back within each category so a shared hero or a homepage story is not repeated.
   const { data, error } = await createPublicClient(PUBLIC_POSTS_CACHE_TAG)
     .from("categories")
     .select("id,posts(cover_image_url,cover_image_alt)")
     .eq("posts.status", "published")
     .order("published_at", { referencedTable: "posts", ascending: false, nullsFirst: false })
     .order("created_at", { referencedTable: "posts", ascending: false })
-    .limit(1, { referencedTable: "posts" });
+    .limit(8, { referencedTable: "posts" });
   if (error) return {};
-  return Object.fromEntries((data ?? []).flatMap((category) =>
-    category.posts[0] ? [[category.id, category.posts[0]]] : [],
-  ));
+  const covers: Record<string, CategoryCover> = {};
+  for (const category of data ?? []) {
+    const cover = category.posts.find(available);
+    if (cover?.cover_image_url) {
+      covers[category.id] = cover;
+      used.add(imageIdentity(cover.cover_image_url));
+    }
+  }
+  return covers;
 }
 
 export async function getPublishedPosts(options?: {

@@ -8,7 +8,8 @@
     "start": "node scripts/next-wasm.mjs start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:audit": "node scripts/test-site-audit.mjs"
+    "test:audit": "node scripts/test-site-audit.mjs",
+    "test:publishing": "node scripts/test-publishing.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

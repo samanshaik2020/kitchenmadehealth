@@ -17,9 +17,9 @@ export function UserCoverImage({
   className?: string;
   priority?: boolean;
 }) {
-  const [failed, setFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  if (failed) {
+  if (failedSrc === src) {
     return (
       <span className="absolute inset-0 grid place-items-center bg-cream text-stone">
         <span className="text-center text-xs font-semibold">
@@ -37,7 +37,7 @@ export function UserCoverImage({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
       className={cn("absolute inset-0 h-full w-full object-cover", className)}
     />
   );

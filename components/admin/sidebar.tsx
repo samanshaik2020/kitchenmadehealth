@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   Tags,
   Images,
+  Youtube,
 } from "lucide-react";
 import { logout } from "@/app/(admin)/login/actions";
 import { Logo } from "@/components/site/logo";
@@ -26,6 +27,7 @@ const navigation = [
   { href: "/dashboard/posts/new", label: "New story", icon: FilePlus2 },
   { href: "/dashboard/html-pages", label: "HTML pages", icon: FileCode2 },
   { href: "/dashboard/media", label: "Images & PDFs", icon: Images },
+  { href: "/dashboard/videos", label: "Homepage videos", icon: Youtube },
   { href: "/dashboard/taxonomy", label: "Categories & tags", icon: Tags },
   { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },

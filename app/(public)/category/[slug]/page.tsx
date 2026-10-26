@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { PostCard } from "@/components/blog/post-card";
 import { getCategories, getCategoryBySlug, getPublishedPosts } from "@/lib/posts";
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/site-config";
+import { getCategoryImage } from "@/lib/editorial-images";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -15,17 +16,6 @@ export async function generateStaticParams() {
   const categories = await getCategories();
   return categories.map((category) => ({ slug: category.slug }));
 }
-
-const categoryArt: Record<string, string> = {
-  "diabetes-blood-sugar":
-    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1800&q=88",
-  knives:
-    "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=1800&q=88",
-  appliances:
-    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1800&q=88",
-  "home-remedies":
-    "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=1800&q=88",
-};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -46,7 +36,7 @@ export default async function CategoryPage({ params }: PageProps) {
     getPublishedPosts({ category: slug, pageSize: 24 }),
   ]);
   if (!category) notFound();
-  const heroImage = categoryArt[slug] ?? "/images/kitchen-made-health-hero.webp";
+  const heroImage = getCategoryImage(slug);
 
   return (
     <>
@@ -70,7 +60,7 @@ export default async function CategoryPage({ params }: PageProps) {
         </div>
         <div className="order-1 relative min-h-[25rem] overflow-hidden lg:order-2">
           <Image
-            src={heroImage}
+            src={heroImage.src}
             alt=""
             fill
             priority

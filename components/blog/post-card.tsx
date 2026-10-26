@@ -3,6 +3,7 @@ import { ArrowUpRight, Clock3 } from "lucide-react";
 import { UserCoverImage } from "@/components/ui/user-cover-image";
 import type { Post } from "@/lib/types";
 import { cn, formatDate, readingTime } from "@/lib/utils";
+import { getPostImage } from "@/lib/editorial-images";
 
 export function PostCard({
   post,
@@ -13,6 +14,7 @@ export function PostCard({
   featured?: boolean;
   index?: number;
 }) {
+  const image = getPostImage(post);
   return (
     <article
       className={cn(
@@ -28,13 +30,11 @@ export function PostCard({
         )}
         aria-label={`Read ${post.title}`}
       >
-        {post.cover_image_url && (
           <UserCoverImage
-            src={post.cover_image_url}
-            alt=""
+            src={image.src}
+            alt={image.alt}
             className="object-cover transition duration-700 group-hover:scale-[1.04]"
           />
-        )}
         <div className="absolute inset-0 bg-gradient-to-t from-ink/30 via-transparent to-transparent opacity-60" />
         {post.category && (
           <span className="absolute left-4 top-4 rounded-full border border-white/40 bg-paper/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.15em] text-ink backdrop-blur">

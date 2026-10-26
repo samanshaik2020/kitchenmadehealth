@@ -280,7 +280,7 @@ export async function createPost(
   if (!parsed.success) {
     return {
       success: false,
-      message: "Check the highlighted fields and try again.",
+      message: "The story could not be saved. Fix the fields below, then try again.",
       errors: parsed.error.flatten().fieldErrors,
     };
   }
@@ -353,7 +353,7 @@ export async function updatePost(
   if (!parsed.success) {
     return {
       success: false,
-      message: "Check the highlighted fields and try again.",
+      message: "The story could not be saved. Fix the fields below, then try again.",
       errors: parsed.error.flatten().fieldErrors,
     };
   }

@@ -53,6 +53,7 @@ import type {
   Tag,
 } from "@/lib/types";
 import { formatDate, slugify } from "@/lib/utils";
+import { findPublishingIssues } from "@/lib/publishing-checks";
 
 const PostEditor = dynamic(
   () =>
@@ -105,7 +106,7 @@ export function PostForm({
   const [slug, setSlug] = useState(post?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(post));
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
-  const [content, setContent] = useState(post?.content ?? "<p>Start writing your guide…</p>");
+  const [content, setContent] = useState(post?.content ?? "<p></p>");
   const [coverUrl, setCoverUrl] = useState(post?.cover_image_url ?? "");
   const [coverAlt, setCoverAlt] = useState(post?.cover_image_alt ?? "");
   const [pdfAttachment, setPdfAttachment] = useState<PostPdfAttachment | null>(post?.pdf_attachment ?? null);
@@ -151,6 +152,14 @@ export function PostForm({
   const fileInput = useRef<HTMLInputElement>(null);
   const supportingImage1Input = useRef<HTMLInputElement>(null);
   const supportingImage2Input = useRef<HTMLInputElement>(null);
+  const errorSummary = useRef<HTMLDivElement>(null);
+  const publishingIssues = findPublishingIssues(content, true);
+
+  useEffect(() => {
+    if (!state.message || state.success) return;
+    errorSummary.current?.focus();
+    errorSummary.current?.scrollIntoView({ block: "center", behavior: "auto" });
+  }, [state]);
 
   const markDirty = () => {
     setDirty(true);
@@ -301,7 +310,7 @@ export function PostForm({
   }
 
   return (
-    <form action={formAction}>
+    <form action={formAction} noValidate aria-busy={pending}>
       <input type="hidden" name="content" value={content} />
       <input type="hidden" name="tag_ids" value={JSON.stringify(tagIds)} />
       <input type="hidden" name="affiliate_links" value={JSON.stringify(affiliates)} />
@@ -375,10 +384,25 @@ export function PostForm({
                   ? "border-green-200 bg-green-50 text-green-800"
                   : "border-red-200 bg-red-50 text-red-800"
               }`}
-              role="status"
+              ref={errorSummary}
+              tabIndex={-1}
+              role={state.success ? "status" : "alert"}
             >
               {state.success ? <Check size={17} /> : <X size={17} />}
-              {state.message}
+              <div>
+                <p className="font-semibold">{state.message}</p>
+                {state.errors && <ul className="mt-2 list-disc space-y-1 pl-4">
+                  {Object.entries(state.errors).flatMap(([field, messages]) => (messages ?? []).map((message) => (
+                    <li key={`${field}-${message}`}>
+                      <button type="button" className="text-left underline underline-offset-2" onClick={() => {
+                        const target = document.getElementById(field === "content" ? "article-content-field" : field);
+                        target?.scrollIntoView({ block: "center" });
+                        target?.focus();
+                      }}>{message}</button>
+                    </li>
+                  )))}
+                </ul>}
+              </div>
             </div>
           )}
 
@@ -407,8 +431,9 @@ export function PostForm({
               />
               {fieldError("title")}
             </div>
-            <div className="mt-7">
+            <div id="article-content-field" tabIndex={-1} className="mt-7 scroll-mt-28">
               <Label>Article content</Label>
+              <p className="mb-3 text-xs leading-6 text-stone">Write your story and link to its sources using the link button. Images, PDFs, and YouTube videos are optional.</p>
               <PostEditor
                 content={content}
                 onChange={(value) => {
@@ -528,6 +553,11 @@ export function PostForm({
           <section className="border border-line bg-white p-5 shadow-[0_12px_40px_rgba(16,38,29,.035)]">
             <p className="eyebrow text-terracotta">Publishing</p>
             <h2 className="mt-2 font-display text-2xl font-medium">Story settings</h2>
+            <div className="mt-4 rounded-xl border border-line bg-cream/40 p-3 text-xs leading-6 text-stone">
+              <p className="font-semibold text-ink">Before publishing</p>
+              <p>Choose a category and include a source link in health guides. YouTube is optional.</p>
+              {publishingIssues.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-4">{publishingIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
+            </div>
             <div className="mt-5">
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor="category_id">Category</Label>

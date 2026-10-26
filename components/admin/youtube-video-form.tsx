@@ -55,7 +55,7 @@ export function YouTubeVideoForm({ videos, loadError }: { videos: YouTubeVideo[]
         })}
       </div>
       <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-xl text-xs leading-6 text-stone">The homepage shows your links in this order, three across on desktop. Empty slots stay hidden. Clear a slot and save to remove a link.</p>
+        <p className="max-w-xl text-xs leading-6 text-stone">The homepage shows two rows of three videos on desktop. The default picks are from the Kitchen Made Health channel; replace them here whenever you like. Empty slots stay hidden; clear a slot and save to remove a video.</p>
         <div className="flex items-center gap-4">
           <a href="/#youtube" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold">View homepage <ExternalLink size={14} /></a>
           <button disabled={pending || Boolean(loadError)} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-xs font-bold text-white disabled:opacity-50">{pending ? <LoaderCircle size={14} className="animate-spin" /> : <Save size={14} />}Save links</button>
