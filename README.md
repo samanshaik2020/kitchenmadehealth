@@ -62,8 +62,8 @@ add a title, and choose **Insert video**. Watch, share, Shorts, live, and embed
 URLs are accepted. The video is saved in the article body and uses YouTube's
 privacy-enhanced embed host. Invalid URLs and unrelated iframes are rejected.
 Article videos are optional. An uninserted video URL never blocks saving or
-publishing. Publish errors are summarized and focused above the editor; health
-guides still require a source link in their article text.
+publishing. Source URLs are also optional. Publish errors are summarized and
+focused above the editor.
 
 Use **Homepage videos** (`/dashboard/videos`) to replace the six picks from the
 Kitchen Made Health YouTube channel,
@@ -122,8 +122,9 @@ ready; otherwise the social link stays hidden. Policy and contact pages live at
 `/affiliate-disclosure`, and `/contact`; their text is in `lib/policy-pages.ts`.
 Review that text when the site's data collection or editorial practices change.
 
-Publishing a health story requires a source link and no draft instructions.
-Drafts remain editable without source links. The editor toolbar includes link
+Source URLs are optional when saving, publishing, scheduling, or restoring a
+story. Draft instructions and unfinished template links still block publication.
+The editor toolbar includes link
 and unlink controls. These checks catch unfinished material; they do not verify
 clinical claims or establish that a reviewer has examined an article. The public
 byline links to the editorial desk policy and makes the current review status

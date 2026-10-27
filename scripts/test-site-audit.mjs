@@ -36,10 +36,10 @@ assert.equal(url.searchParams.get("category"),"diabetes-blood-sugar");
 assert.equal(url.searchParams.get("page"),"2");
 assert.equal(journalHref({page:1}),"/blog");
 
-assert(findPublishingIssues('<p>[Author name / team] [date] Start writing your guide…</p>',true).length);
+assert(findPublishingIssues('<p>[Author name / team] [date] Start writing your guide…</p>').length);
 assert(findPublishingIssues('<a href="https://retailer.example/AFFILIATE/CAMPAIGN">Buy</a>').length);
-assert(findPublishingIssues('<p>Health guidance without references.</p>',true).length);
-assert.deepEqual(findPublishingIssues('<p>See <a href="https://www.cdc.gov/">the source</a>.</p>',true),[]);
+assert.deepEqual(findPublishingIssues('<p>Health guidance without references.</p>'),[]);
+assert.deepEqual(findPublishingIssues('<p>See <a href="https://www.cdc.gov/">the source</a>.</p>'),[]);
 assert.match(actionErrorMessage({code:"PGRST116",message:"No rows"},"Failed"),/author account/);
 assert.equal(actionErrorMessage({message:"A database field is missing"},"Failed"),"A database field is missing");
 assert.equal(actionErrorMessage(null,"Failed"),"Failed");

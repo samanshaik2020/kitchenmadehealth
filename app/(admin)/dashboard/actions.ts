@@ -52,7 +52,7 @@ const postFields = z.object({
 
 const postSchema = postFields.superRefine((value, context) => {
     if (value.status === "published" || value.status === "scheduled") {
-      for (const message of findPublishingIssues(value.content, true)) {
+      for (const message of findPublishingIssues(value.content)) {
         context.addIssue({ code: "custom", path: ["content"], message });
       }
     }
@@ -487,7 +487,7 @@ export async function restoreRevision(postId: string, revisionId: string) {
   await saveRevision(supabase, user.id, postId, current, "restore");
   const snapshot = revision.snapshot as Record<string, unknown>;
   if (snapshot.status === "published" || snapshot.status === "scheduled") {
-    const issues = findPublishingIssues(String(snapshot.content ?? ""), true);
+    const issues = findPublishingIssues(String(snapshot.content ?? ""));
     if (issues.length) throw new Error(issues.join(" "));
   }
   const { error: updateError } = await supabase
@@ -509,7 +509,7 @@ export async function togglePostStatus(id: string, nextStatus: PostStatus) {
   if (nextStatus === "published" || nextStatus === "scheduled") {
     const { data: current, error: readError } = await supabase.from("posts").select("content").eq("id", id).eq("author_id", user.id).single();
     if (readError || !current) throw new Error("That story could not be read.");
-    const issues = findPublishingIssues(current.content, true);
+    const issues = findPublishingIssues(current.content);
     if (issues.length) throw new Error(issues.join(" "));
   }
   const { data: post, error } = await supabase
@@ -559,8 +559,8 @@ export async function bulkUpdatePosts(
   if (operation === "publish") {
     const { data: selected, error: readError } = await supabase.from("posts").select("title,content").in("id", parsedIds).eq("author_id", user.id);
     if (readError) throw new Error("The selected stories could not be read.");
-    const unfinished = selected?.find((post) => findPublishingIssues(post.content, true).length);
-    if (unfinished) throw new Error(`Finish sources and remove draft instructions in “${unfinished.title}” before publishing.`);
+    const unfinished = selected?.find((post) => findPublishingIssues(post.content).length);
+    if (unfinished) throw new Error(`Remove draft instructions and template links in “${unfinished.title}” before publishing.`);
   }
 
   if (operation === "delete") {

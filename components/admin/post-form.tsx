@@ -153,7 +153,7 @@ export function PostForm({
   const supportingImage1Input = useRef<HTMLInputElement>(null);
   const supportingImage2Input = useRef<HTMLInputElement>(null);
   const errorSummary = useRef<HTMLDivElement>(null);
-  const publishingIssues = findPublishingIssues(content, true);
+  const publishingIssues = findPublishingIssues(content);
 
   useEffect(() => {
     if (!state.message || state.success) return;
@@ -433,7 +433,7 @@ export function PostForm({
             </div>
             <div id="article-content-field" tabIndex={-1} className="mt-7 scroll-mt-28">
               <Label>Article content</Label>
-              <p className="mb-3 text-xs leading-6 text-stone">Write your story and link to its sources using the link button. Images, PDFs, and YouTube videos are optional.</p>
+              <p className="mb-3 text-xs leading-6 text-stone">Write your story. Source links, images, PDFs, and YouTube videos are optional. Use the link button to add a source if you want to include one.</p>
               <PostEditor
                 content={content}
                 onChange={(value) => {
@@ -555,7 +555,7 @@ export function PostForm({
             <h2 className="mt-2 font-display text-2xl font-medium">Story settings</h2>
             <div className="mt-4 rounded-xl border border-line bg-cream/40 p-3 text-xs leading-6 text-stone">
               <p className="font-semibold text-ink">Before publishing</p>
-              <p>Choose a category and include a source link in health guides. YouTube is optional.</p>
+              <p>Choose a category. Source URLs and YouTube videos are optional.</p>
               {publishingIssues.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-4">{publishingIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
             </div>
             <div className="mt-5">

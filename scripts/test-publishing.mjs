@@ -26,7 +26,7 @@ function postForm(overrides = {}) {
   const form = new FormData();
   const values = {
     title: "A practical kitchen guide", slug: "a-practical-kitchen-guide",
-    content: '<p>A complete guide with <a href="https://www.nhs.uk/live-well/">a research source</a>.</p>',
+    content: '<p>A complete article about everyday kitchen routines, with no source URL or video.</p>',
     category_id: "730cb6cc-85be-4a68-9b1f-344a75520c79", status: "published",
     excerpt: "", cover_image_url: "", cover_image_alt: "", supporting_image_1_url: "",
     supporting_image_1_alt: "", supporting_image_2_url: "", supporting_image_2_alt: "",
@@ -40,23 +40,28 @@ function postForm(overrides = {}) {
 function actions(options = {}) {
   const writes = [];
   const invalidations = [];
-  const current = { id: "post-1", author_id: "editor-1", status: "draft", published_at: null };
+  const current = { id: "post-1", author_id: "editor-1", title: "A practical kitchen guide", slug: "a-practical-kitchen-guide", content: "<p>A complete article without any URLs.</p>", status: "draft", published_at: null, ...options.current };
   const supabase = { from(table) {
     let operation = "read";
     let payload;
-    const result = () => {
+    const result = (single = false) => {
       if (table === "posts" && operation !== "read") {
         if (options.failure) return { data: null, error: options.failure };
         writes.push({ table, operation, payload });
       }
-      return { data: table === "posts" ? { ...current, ...payload } : [], error: null };
+      const data = table === "posts"
+        ? operation === "read" && !single ? [current] : { ...current, ...payload }
+        : table === "post_revisions" && operation === "read"
+          ? { snapshot: { ...current, status: "published" } }
+          : [];
+      return { data, error: null };
     };
     const query = {
       select() { return query; }, eq() { return query; }, in() { return query; },
       insert(value) { operation = "insert"; payload = value; return query; },
       update(value) { operation = "update"; payload = value; return query; },
       delete() { operation = "delete"; return query; },
-      single: async () => result(),
+      single: async () => result(true),
       then(resolve, reject) { return Promise.resolve(result()).then(resolve, reject); },
     };
     return query;
@@ -83,11 +88,12 @@ function actions(options = {}) {
   return { ...module, writes, invalidations };
 }
 
-test("an article publishes without a YouTube URL, PDF, or images", async () => {
+test("an article publishes without source URLs, YouTube videos, PDFs, or images", async () => {
   const api = actions();
   await assert.rejects(api.createPost({}, postForm()), /REDIRECT:\/dashboard\?created=1/);
   assert.equal(api.writes.length, 1);
   assert.equal(api.writes[0].payload.status, "published");
+  assert.doesNotMatch(api.writes[0].payload.content, /href=|<iframe/);
   assert.equal(api.writes[0].payload.pdf_attachment, null);
   assert.ok(api.writes[0].payload.published_at);
   assert.ok(api.invalidations.includes("/"));
@@ -100,13 +106,42 @@ test("an uninserted optional video field does not block an article update", asyn
   assert.doesNotMatch(api.writes[0].payload.content, /youtube|unfinished link/);
 });
 
-test("publishing reports actual missing sources and categories and writes nothing", async () => {
+test("publishing still reports a missing category without requiring source URLs", async () => {
   const api = actions();
   const result = await api.createPost({}, postForm({ category_id: "", content: "<p>A complete article without a source.</p>" }));
   assert.equal(result.success, false);
   assert.match(result.errors.category_id[0], /category/i);
-  assert.match(result.errors.content[0], /source/i);
+  assert.equal(result.errors.content, undefined);
   assert.equal(api.writes.length, 0);
+});
+
+test("articles can be scheduled without a source URL", async () => {
+  const api = actions();
+  const scheduledAt = new Date(Date.now() + 86_400_000).toISOString();
+  await assert.rejects(api.createPost({}, postForm({ status: "scheduled", published_at: scheduledAt })), /REDIRECT/);
+  assert.equal(api.writes[0].payload.status, "scheduled");
+  assert.equal(api.writes[0].payload.published_at, scheduledAt);
+});
+
+test("dashboard quick publish, bulk publish, and revision restore accept articles without URLs", async () => {
+  for (const operation of ["quick", "bulk", "restore"]) {
+    const api = actions();
+    if (operation === "quick") await api.togglePostStatus("post-1", "published");
+    if (operation === "bulk") assert.equal((await api.bulkUpdatePosts(["post-1"], "publish")).success, true);
+    if (operation === "restore") await api.restoreRevision("post-1", "revision-1");
+    assert.equal(api.writes.length, 1, operation);
+    assert.equal(api.writes[0].payload.status, "published", operation);
+  }
+});
+
+test("unfinished draft instructions and template links still block publishing", async () => {
+  for (const content of ["<p>Start writing your guide…</p>", '<p><a href="https://retailer.example/AFFILIATE/CAMPAIGN">Buy now</a></p>']) {
+    const api = actions();
+    const result = await api.createPost({}, postForm({ content }));
+    assert.equal(result.success, false);
+    assert.ok(result.errors.content.length);
+    assert.equal(api.writes.length, 0);
+  }
 });
 
 test("drafts can save without sources; schedules still validate their date", async () => {
